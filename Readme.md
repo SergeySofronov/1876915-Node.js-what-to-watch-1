@@ -2,6 +2,7 @@
 
 * Студент: [Сергей Софронов](https://up.htmlacademy.ru/nodejs-api/1/user/1876915).
 * Наставник: [Сергей Вохмянин](https://up.htmlacademy.ru/profession/fullstack/1/nodejs-api/1/tutors).
+* Проект: ["Что посмотреть (Node.js)"](https://github.com/SergeySofronov/1876915-Node.js-what-to-watch-1).
 
 ---
 
