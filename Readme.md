@@ -1,7 +1,7 @@
 # Личный проект «Что посмотреть»
 
 * Студент: [Сергей Софронов](https://up.htmlacademy.ru/nodejs-api/1/user/1876915).
-* Наставник: `Неизвестно`.
+* Наставник: [Сергей Вохмянин](https://up.htmlacademy.ru/profession/fullstack/1/nodejs-api/1/tutors).
 
 ---
 
