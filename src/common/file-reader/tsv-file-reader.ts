@@ -1,66 +1,35 @@
-import { readFileSync } from 'fs';
-import { Film } from '../../types/film.type';
+import EventEmitter from 'events';
+import { createReadStream } from 'fs';
 import { FileReaderInterface } from './file-reader.interface.js';
 
-export default class TSVFileReader implements FileReaderInterface {
-  private rawData = '';
+export default class TSVFileReader extends EventEmitter implements FileReaderInterface {
   public filename = '';
 
   constructor(filename: string) {
+    super();
     this.filename = filename;
   }
 
-  public read(): void {
-    this.rawData = readFileSync(this.filename, { encoding: 'utf8' });
-  }
+  public async read(): Promise<void> {
+    const stream = createReadStream(this.filename, { highWaterMark: 2 ** 16, encoding: 'utf-8' });
 
-  public toArray(): Film[] {
-    if (!this.rawData) {
-      return [];
+    let lineRead = '';
+    let endLinePosition = -1;
+    let importedRowCount = 0;
+
+    for await (const chunk of stream) {
+      lineRead += chunk.toString();
+
+      while ((endLinePosition = lineRead.indexOf('\n')) >= 0) {
+        const completeRow = lineRead.slice(0, endLinePosition + 1);
+        lineRead = lineRead.slice(++endLinePosition);
+        importedRowCount++;
+
+        this.emit('line', completeRow);
+      }
     }
 
-    return this.rawData
-      .split('\n')
-      .filter((row) => row.trim() !== '')
-      .map((line) => line.split('\t'))
-      .map(([
-        name,
-        email,
-        avatar,
-        password,
-        title,
-        description,
-        release,
-        rating,
-        previewVideoLink,
-        videoLink,
-        starring,
-        director,
-        runTime,
-        posterImage,
-        backgroundImage,
-        backgroundColor,
-        comments
-      ]) => ({
-        name: title,
-        description,
-        release,
-        rating: Number(rating),
-        previewVideoLink,
-        videoLink,
-        starring: starring.split(';'),
-        director,
-        runTime: Number.parseInt(runTime, 10),
-        commentsCount: comments.split(';').length,
-        posterImage,
-        backgroundImage,
-        backgroundColor,
-        user: {
-          name,
-          email,
-          avatar,
-          password,
-        }
-      }));
+    this.emit('end', importedRowCount);
+
   }
 }
