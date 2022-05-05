@@ -5,24 +5,26 @@ import { CliCommandInterface } from './cli-command.interface';
 class ImportCommand implements CliCommandInterface {
   public readonly name = '--import';
 
-  private onLine(line: string) {
+  private fileReader!: TSVFileReader;
+
+  private onLine = (line: string) => {
     const film = createFilm(line);
     console.log(film);
-  }
+  };
 
-  private onComplete(count: number) {
-    console.log(`${count} rows imported.`);
-  }
+  private onComplete = (count: number) => console.log(`${count} rows imported.`);
 
   public async execute(fileName: string): Promise<void> {
-    const fileReader = new TSVFileReader(fileName.trim());
-    fileReader.on('line', this.onLine);
-    fileReader.on('end', this.onComplete);
+    this.fileReader = new TSVFileReader(fileName.trim());
+    this.fileReader.on('line', this.onLine);
+    this.fileReader.on('end', this.onComplete);
 
     try {
-      await fileReader.read();
+      await this.fileReader.read();
     } catch (err) {
       console.log(`Can't read the file: ${getErrorMessage(err)}`);
+    } finally {
+      this.fileReader.removeAllListeners();
     }
 
   }
