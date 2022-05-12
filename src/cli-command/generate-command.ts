@@ -8,7 +8,7 @@ export default class GenerateCommand implements CliCommandInterface {
   public readonly name = '--generate';
   private initialData!: MockData;
 
-  public async execute(...parameters:string[]): Promise<void> {
+  public async execute(...parameters: string[]): Promise<void> {
     const [count, filepath, url] = parameters;
     const filmsCount = Number.parseInt(count, 10);
 
@@ -25,6 +25,7 @@ export default class GenerateCommand implements CliCommandInterface {
       await tsvFileWriter.write(`${FilmGeneratorString.generate()}\n`);
     }
 
+    tsvFileWriter.close();
     console.log(`File ${filepath} was created!`);
 
   }
