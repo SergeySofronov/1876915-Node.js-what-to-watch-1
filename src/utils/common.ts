@@ -1,7 +1,13 @@
+import crypto from 'crypto';
 import { Film } from '../types/film.type';
 
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : '';
+
+const createSHA256 = (line: string, salt: string): string => {
+  const shaHasher = crypto.createHmac('sha256', salt);
+  return shaHasher.update(line).digest('hex');
+};
 
 const createFilm = (rowData: string): Film => {
   const chunk = rowData.replace('\n', '').split('\t');
@@ -68,4 +74,4 @@ const createFilm = (rowData: string): Film => {
   });
 };
 
-export { getErrorMessage, createFilm };
+export { getErrorMessage, createFilm, createSHA256 };
