@@ -81,6 +81,7 @@ class ImportCommand implements CliCommandInterface {
       console.log(`Can't read the file: ${getErrorMessage(err)}`);
     } finally {
       this.fileReader.removeAllListeners();
+      this.databaseService.disconnect();
     }
 
   }

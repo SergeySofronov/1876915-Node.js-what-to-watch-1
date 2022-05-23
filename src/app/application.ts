@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import { inject, injectable } from 'inversify';
 import { ConfigInterface } from '../common/config/config.interface.js';
 import { LoggerInterface } from '../common/logger/logger.interface.js';

@@ -1,19 +1,17 @@
-import 'reflect-metadata';
-import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses.js';
-import typegoose, { getModelForClass, Ref } from '@typegoose/typegoose';
+import typegoose, { getModelForClass, Ref, defaultClasses } from '@typegoose/typegoose';
 import { UserEntity } from '../user/user.entity.js';
 import { FilmGenreType } from '../../types/film-genre.enum.js';
 
 const { prop, modelOptions } = typegoose;
 
-export interface FilmEntity extends Base { }
+export interface FilmEntity extends defaultClasses.Base { }
 
 @modelOptions({
   schemaOptions: {
     collection: 'films'
   }
 })
-export class FilmEntity extends TimeStamps {
+export class FilmEntity extends defaultClasses.TimeStamps {
   @prop({ trim: true, required: true })
   public title!: string;
 

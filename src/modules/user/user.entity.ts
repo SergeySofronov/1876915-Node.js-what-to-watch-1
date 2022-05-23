@@ -1,13 +1,11 @@
-import 'reflect-metadata';
-import typegoose, { getModelForClass } from '@typegoose/typegoose';
-import { TimeStamps, Base } from '@typegoose/typegoose/lib/defaultClasses.js';
+import typegoose, { getModelForClass, defaultClasses } from '@typegoose/typegoose';
 import { User } from '../../types/user.type';
 import { createSHA256 } from '../../utils/common.js';
 
 const { prop, modelOptions } = typegoose;
 
 
-interface UserEntity extends Base { }
+interface UserEntity extends defaultClasses.Base { }
 
 // декоратор изменяет название коллекции с userEntities на users
 @modelOptions({
@@ -16,7 +14,7 @@ interface UserEntity extends Base { }
   }
 })
 
-class UserEntity extends TimeStamps implements User {
+class UserEntity extends defaultClasses.TimeStamps implements User {
   constructor(data: User) {
     super();
 

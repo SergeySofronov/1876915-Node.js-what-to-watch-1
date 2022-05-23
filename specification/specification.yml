@@ -1,0 +1,578 @@
+openapi: 3.0.1
+info:
+  title: REST API сервер для учебного проекта "Что посмотреть"
+  description: Список ресурсов и маршрутов сервера "Что посмотреть"
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  version: 1.0.0
+
+tags:
+  - name: films
+    description: Действия с фильмами
+  - name: promo
+    description: Действия с промо-фильмом
+  - name: favorite
+    description: Действия со списком фильмов «К просмотру»
+  - name: comments
+    description: Действия с комментариями
+  - name: users
+    description: Действия с пользователями
+
+paths:
+  /films/:
+    post:
+      tags:
+        - films
+      summary: Добавить новый фильм
+      description: Сервис предоставляет ресурс для добавления новых фильмов. Ресурс доступен только авторизованным клиентам
+      operationId: сreateFilm
+      requestBody:
+        description: Объект с новым фильмом
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFilm"
+        required: true
+      responses:
+        "201":
+          description: Объект фильма
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Film"
+        "400":
+          description: Ошибка тела запроса
+          content: {}
+        "401":
+          description: Пользователь не авторизован
+          content: {}
+        "409":
+          description: Такой фильм уже существует
+          content: {}
+    get:
+      tags:
+        - films
+      summary: Получить список фильмов
+      description: Сервис возвращает список фильмов, отсортированный по дате публикации (по убыванию). Клиент может запросить больше фильмов за раз, указав нужное количество в параметре запроса
+      operationId: getFilmList
+      responses:
+        "200":
+          description: Массив фильмов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FilmInList"
+
+  /films/{filmId}:
+    get:
+      tags:
+        - films
+      summary: Получение детальной информации по фильму
+      description: В случае успешного обновления карточки фильма сервис возвращает клиенту объект фильма. Детальная информация по фильму включает сведения о количестве комментариев, но сами комментарии не включены.
+      operationId: getFilmById
+      parameters:
+        - name: filmId
+          in: path
+          description: Уникальный идентификатор карточки фильма
+          required: true
+          schema:
+            type: string
+            example: 507f1f77bcf86cd799439011
+      responses:
+        "200":
+          description: Объект фильма
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Film"
+        "404":
+          description: Фильм не найден
+          content: {}
+
+    put:
+      tags:
+        - films
+      summary: Редактирование карточки фильма.
+      description: Обновляет фильм с идентификатором `filmId`. Возвращает клиенту обновлённый объект фильма. Ресурс доступен только авторизованным клиентам
+      operationId: updateFilmById
+      parameters:
+        - name: filmId
+          in: path
+          description: Уникальный идентификатор фильма
+          required: true
+          schema:
+            type: string
+            example: 507f1f77bcf86cd799439011
+      requestBody:
+        description: Объект с изменённым фильмом
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFilm"
+        required: true
+      responses:
+        "200":
+          description: Объект фильма
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Film"
+        "401":
+          description: Пользователь не авторизован
+          content: {}
+        "404":
+          description: Фильм не найден
+          content: {}
+
+    delete:
+      tags:
+        - films
+      summary: Сервис предоставляет ресурс для удаления фильмов
+      description: Удаляет фильм с идентификатором `filmId`. При удалении фильма комментарии к нему удаляются автоматически. Ресурс доступен только авторизованным клиентам
+      operationId: deleteFilmById
+      parameters:
+        - name: filmId
+          in: path
+          description: Уникальный идентификатор фильма
+          required: true
+          schema:
+            type: string
+            example: 507f1f77bcf86cd799439011
+      responses:
+        "200":
+          description: Фильм удален
+          content: {}
+        "401":
+          description: Пользователь не авторизован
+          content: {}
+        "404":
+          description: Фильм не найден
+          content: {}
+
+  /films/{filmId}/similar:
+    get:
+      tags:
+        - films
+      summary: Получение списка фильмов определённого жанра
+      description: Сервис возвращает список фильмов идентичных по жанру фильму с идентификатором `filmId` , отсортированный по дате публикации (по убыванию)
+      operationId: getSimilarFilms
+      parameters:
+        - name: filmId
+          in: path
+          description: Уникальный идентификатор карточки фильма
+          required: true
+          schema:
+            type: string
+            example: 507f1f77bcf86cd799439011
+      responses:
+        "200":
+          description: Возвращает массив фильмов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FilmInList"
+        "404":
+          description: Фильм не найден
+          content: {}
+
+  /promo/:
+    get:
+      tags:
+        - promo
+      summary: Получение промо-фильма
+      description: Сервис предоставляет ресурс для получения информации о промо-фильме
+      operationId: getPromoFilm
+      responses:
+        "200":
+          description: Промо-фильм
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Film"
+
+  /favorite:
+    get:
+      tags:
+        - favorite
+      summary: Получить список фильмов «К просмотру»
+      description: Сервис предоставляет ресурс для получения списка фильмов, добавленных к просмотру. Ресурс доступен только авторизованным клиентам
+      operationId: getFavoriteFilms
+      responses:
+        "200":
+          description: Массив фильмов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FilmInList"
+        "401":
+          description: Пользователь не авторизован
+          content: {}
+
+  /favorite/{filmId}/{isFavorite}:
+    post:
+      tags:
+        - favorite
+      summary: Добавить/удалить фильм из списка «К просмотру»
+      description: Сервис предоставляет ресурс для добавления и удаления любого фильма в/из списка к просмотру. Ресурс доступен только авторизованным клиентам
+      operationId: changeFavoriteFilmStatus
+      parameters:
+        - name: filmId
+          in: path
+          description: Уникальный идентификатор карточки фильма
+          required: true
+          schema:
+            type: string
+            example: 507f1f77bcf86cd799439011
+        - name: isFavorite
+          in: path
+          description: Статус фильма. Статус фильма. Может быть 1 или 0, где 1 добавляет фильма в список «к просмотру», 0 -  удаляет
+          required: true
+          schema:
+            type: number
+            enum:
+              - 0
+              - 1
+      responses:
+        "200":
+          description: Объект фильма
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Film"
+        "401":
+          description: Пользователь не авторизован
+          content: {}
+
+  /comments/{filmId}:
+    get:
+      tags:
+        - comments
+      summary: Сервис предоставляет ресурс для получения списка комментариев для фильма с идентификатором `filmId`
+      description: Сервис всегда возвращает список из 50 (или меньше) последних комментариев. Комментарии отсортированы по дате публикации (по убыванию). Сначала новые, потом старые
+      operationId: getFilmComments
+      parameters:
+        - name: filmId
+          in: path
+          description: Уникальный идентификатор карточки фильма
+          required: true
+          schema:
+            type: string
+            example: 507f1f77bcf86cd799439011
+      responses:
+        "200":
+          description: Массив объектов-комментариев
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+        "404":
+          description: Фильм не найден
+          content: {}
+    post:
+      tags:
+        - comments
+      summary: Добавить новый комментарий
+      description: Добавляет новый комментарий для фильма с идентификатором `filmId`. Ресурс доступен только авторизованным клиентам
+      operationId: postFilmComment
+      parameters:
+        - name: offerId
+          in: path
+          description: Уникальный идентификатор карточки фильма
+          required: true
+          schema:
+            type: string
+            example: 507f1f77bcf86cd799439011
+      requestBody:
+        description: Объект с новым комментарием
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateComment"
+        required: true
+      responses:
+        "201":
+          description: Новый комментарий
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+        "400":
+          description: Ошибка тела запроса
+          content: {}
+        "404":
+          description: Фильм не найден
+          content: {}
+
+  /register:
+    post:
+      tags:
+        - users
+      summary: Создать нового пользователя
+      description: Создает нового пользователя
+      operationId: registerUser
+      requestBody:
+        description: Объект, содержащий данные пользователя
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterUser"
+        required: true
+      responses:
+        "200":
+          description: Статус авторизации
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationInfo"
+        "400":
+          description: Ошибка тела запроса
+          content: {}
+        "409":
+          description: Пользователь с таким email существует
+          content: {}
+
+  /login:
+    post:
+      tags:
+        - users
+      summary: Вход в закрытую часть приложения
+      description: Сервис предоставляет ресурс для аутентификации и авторизации пользователя
+      operationId: loginUser
+      requestBody:
+        description: Объект, содержащий данные пользователя.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Authorization"
+        required: true
+      responses:
+        "200":
+          description: Статус авторизации
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationInfo"
+        "400":
+          description: Ошибка тела запроса
+          content: {}
+        "401":
+          description: Не верный логин или пароль
+          content: {}
+    get:
+      tags:
+        - users
+      summary: Проверка состояния пользователя
+      description: Сервис предоставляет ресурс для проверки состояния клиента — авторизован или нет
+      operationId: checkAuthUser
+      responses:
+        "200":
+          description: Статус авторизации
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationInfo"
+        "401":
+          description: Пользователь не авторизован
+          content: {}
+
+  /logout:
+    delete:
+      tags:
+        - users
+      summary: Выход из закрытой части приложения
+      description: Сервис предоставляет ресурс для завершения пользовательского сеанса. Ресурс доступен только авторизованным клиентам
+      operationId: logoutUser
+      responses:
+        "204":
+          description: Сеанс завершен
+          content: {}
+        "401":
+          description: Пользователь не авторизован
+          content: {}
+
+components:
+  schemas:
+    Genre:
+      type: string
+      enum:
+        - comedy
+        - crime
+        - documentary
+        - drama
+        - horror
+        - family
+        - romance
+        - sci-fi
+        - thriller
+      example: drama
+
+    Rating:
+      type: string
+      format: float
+      example: 9.1
+
+    Date:
+      type: string
+      example: 2021-12-12T21:55:28.147Z
+
+    CreateFilm:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Зеленая миля
+        description:
+          type: string
+          example: Пол Эджкомб — начальник блока смертников в тюрьме «Холодная гора», каждый из узников которого однажды проходит «зеленую милю» по пути к месту казни.
+        publicationDate:
+          $ref: "#/components/schemas/Date"
+        genre:
+          $ref: "#/components/schemas/Genre"
+        released:
+          type: string
+          example: 1994
+        rating:
+          $ref: "#/components/schemas/Rating"
+        previewVideoLink:
+          type: string
+          example: https://{url}/static/films/film/preview.mp4
+        videoLink:
+          type: string
+          example: https://{url}/static/films/film/video.mp4
+        starring:
+          type: array
+          items:
+            type: string
+          example: [Том Хэнкс, Дэвид Морс, Бонни Хант]
+        director:
+          type: string
+          example: Фрэнк Дарабонт
+        runtime:
+          type: number
+          example: 120
+        posterImage:
+          type: string
+          example: https://{url}/static/img/film-poster.jpeg
+        backgroundImage:
+          type: string
+          example: https://{url}/static/img/film-background.jpeg
+        backgroundColor:
+          type: string
+          example: ffffff
+        userId:
+          $ref: "#/components/schemas/User"
+
+    Film:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              example: 507f1f77bcf86cd799439011
+            commentCount:
+              type: integer
+              format: int32
+              example: 5
+        - $ref: "#/components/schemas/CreateFilm"
+
+    FilmInList:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 507f1f77bcf86cd799439011
+        title:
+          type: string
+          example: Зеленая миля
+        publicationDate:
+          type: string
+          example: 2021-12-12T21:55:28.147Z
+        genre:
+          $ref: "#/components/schemas/Genre"
+        previewVideoLink:
+          type: string
+          example: https://{url}/static/films/film/preview.mp4
+        posterImage:
+          type: string
+          example: https://{url}/static/img/film-poster.jpeg
+        userId:
+          $ref: "#/components/schemas/User"
+
+    CreateComment:
+      type: object
+      properties:
+        comment:
+          type: string
+          example: Фильм, который я могу смело назвать шедевром. Фильм, который...
+        rating:
+          $ref: "#/components/schemas/Rating"
+
+    Comment:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              example: 507f1f77bcf86cd799439011
+            date:
+              $ref: "#/components/schemas/Date"
+            author:
+              $ref: "#/components/schemas/User"
+        - $ref: "#/components/schemas/CreateComment"
+
+    CreateUser:
+      type: object
+      properties:
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          example: John.doe@gmail.com
+        avatar:
+          type: string
+          example: https://{url}/static/avatar/1.jpg
+    User:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              example: 2dd9c
+        - $ref: "#/components/schemas/CreateUser"
+    RegisterUser:
+      allOf:
+        - $ref: "#/components/schemas/CreateUser"
+        - type: object
+          properties:
+            password:
+              type: string
+              example: password
+
+    Authorization:
+      type: object
+      properties:
+        email:
+          type: string
+          example: John.doe@gmail.com
+        password:
+          type: string
+          example: password
+
+    AuthorizationInfo:
+      allOf:
+        - $ref: "#/components/schemas/User"
+        - type: object
+          properties:
+            token:
+              type: string
+              example: T2xpdmVyLmNvbm5lckBnbWFpbC5jb20=

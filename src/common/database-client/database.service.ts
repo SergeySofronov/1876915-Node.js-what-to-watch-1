@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import mongoose from 'mongoose';
 import { inject, injectable } from 'inversify';
 import { Component } from '../../types/component.type.js';

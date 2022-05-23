@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import { inject, injectable } from 'inversify';
 import { DocumentType, ModelType } from '@typegoose/typegoose/lib/types.js';
 import { LoggerInterface } from '../../common/logger/logger.interface.js';

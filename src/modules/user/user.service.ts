@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import { inject, injectable } from 'inversify';
 import { UserEntity } from './user.entity.js';
 import { Component } from '../../types/component.type.js';

@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { Container } from 'inversify';
 import { ModelType } from '@typegoose/typegoose/lib/types.js';
 import { Component } from './types/component.type.js';
