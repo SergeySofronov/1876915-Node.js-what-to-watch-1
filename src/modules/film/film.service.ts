@@ -20,8 +20,16 @@ class FilmService implements FilmServiceInterface {
     return result;
   }
 
+  public async findByTitle(filmTitle: string): Promise<DocumentType<FilmEntity> | null> {
+    return this.filmModel.findOne({ title: filmTitle }).exec();
+  }
+
   public async findById(filmId: string): Promise<DocumentType<FilmEntity> | null> {
     return this.filmModel.findById(filmId).exec();
+  }
+
+  public async findAll(): Promise<DocumentType<FilmEntity>[]> {
+    return this.filmModel.find().exec();
   }
 }
 

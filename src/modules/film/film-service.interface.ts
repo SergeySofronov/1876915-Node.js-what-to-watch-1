@@ -4,7 +4,9 @@ import CreateFilmDto from './dto/create-film.dto.js';
 
 interface FilmServiceInterface {
   create(dto: CreateFilmDto): Promise<DocumentType<FilmEntity>>;
-  findById(offerId: string): Promise<DocumentType<FilmEntity> | null>;
+  findById(filmId: string): Promise<DocumentType<FilmEntity> | null>;
+  findByTitle(filmTitle: string): Promise<DocumentType<FilmEntity> | null>;
+  findAll(): Promise<DocumentType<FilmEntity>[]>;
 }
 
 export { FilmServiceInterface };

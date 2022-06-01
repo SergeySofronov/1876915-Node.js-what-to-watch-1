@@ -15,7 +15,6 @@ import UserService from '../modules/user/user.service.js';
 import DatabaseService from '../common/database-client/database.service.js';
 import ConsoleLoggerService from '../common/logger/console-logger.service.js';
 import ConfigService from '../common/config/config.service.js';
-import CreateFilmDto from '../modules/film/dto/create-film.dto.js';
 
 class ImportCommand implements CliCommandInterface {
   public readonly name = '--import';
@@ -37,14 +36,8 @@ class ImportCommand implements CliCommandInterface {
 
   private async saveFilm(film: Film) {
     const user = await this.userService.findOrCreate(film.user, this.salt);
-
-    const adaptedFilm = Object.assign<CreateFilmDto, Film>(new CreateFilmDto(), film);
-
-    //todo
-    console.log(adaptedFilm);
-
     await this.filmService.create({
-      ...adaptedFilm,
+      ...film,
       userId: user.id,
     });
   }
@@ -60,12 +53,12 @@ class ImportCommand implements CliCommandInterface {
   public async execute(fileName: string, ...rest: string[]): Promise<void> {
     let [login, password, host, port, dbName, salt] = rest;
 
-    login = login ? login : this.config.get('DB_USER');
-    password = password ? password : this.config.get('DB_PASSWORD');
-    host = host ? host : this.config.get('DB_HOST');
-    port = port ? port : String(this.config.get('DB_PORT'));
-    dbName = dbName ? dbName : this.config.get('DB_NAME');
-    salt = salt ? salt : this.config.get('SALT');
+    login = login ?? this.config.get('DB_USER');
+    password = password ?? this.config.get('DB_PASSWORD');
+    host = host ?? this.config.get('DB_HOST');
+    port = port ?? String(this.config.get('DB_PORT'));
+    dbName = dbName ?? this.config.get('DB_NAME');
+    salt = salt ?? this.config.get('SALT');
     this.salt = salt;
 
     const uri = getURI(login, password, host, port ? parseInt(port, 10) : this.config.get('DB_PORT'), dbName);

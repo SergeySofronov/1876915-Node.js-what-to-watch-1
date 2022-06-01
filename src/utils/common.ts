@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { Film } from '../types/film.type';
+import { plainToInstance, ClassConstructor } from 'class-transformer';
 
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : '';
@@ -8,6 +9,13 @@ const createSHA256 = (line: string, salt: string): string => {
   const shaHasher = crypto.createHmac('sha256', salt);
   return shaHasher.update(line).digest('hex');
 };
+
+const fillDTO = <T, V>(someDto: ClassConstructor<T>, plainObject: V) =>
+  plainToInstance(someDto, plainObject, { excludeExtraneousValues: true });
+
+const createErrorObject = (message: string) => ({
+  error: message,
+});
 
 const createFilm = (rowData: string): Film => {
   const chunk = rowData.replace('\n', '').split('\t');
@@ -42,7 +50,7 @@ const createFilm = (rowData: string): Film => {
     rating: Number.parseFloat(rating),
     previewVideoLink,
     videoLink,
-    starring: starring.split(';'),
+    starring: starring.split(','),
     director,
     runtime: Number(runtime),
     commentsCount: rawComments.length,
@@ -74,4 +82,4 @@ const createFilm = (rowData: string): Film => {
   });
 };
 
-export { getErrorMessage, createFilm, createSHA256 };
+export { getErrorMessage, createFilm, createSHA256, fillDTO, createErrorObject };
