@@ -26,7 +26,7 @@ paths:
         - films
       summary: Добавить новый фильм
       description: Сервис предоставляет ресурс для добавления новых фильмов. Ресурс доступен только авторизованным клиентам
-      operationId: сreateFilm
+      operationId: createFilm
       requestBody:
         description: Объект с новым фильмом
         content:
@@ -156,7 +156,7 @@ paths:
     get:
       tags:
         - films
-      summary: Получение списка фильмов определённого жанра
+      summary: Получение списка похожих фильмов
       description: Сервис возвращает список фильмов идентичных по жанру фильму с идентификатором `filmId` , отсортированный по дате публикации (по убыванию)
       operationId: getSimilarFilms
       parameters:
@@ -178,6 +178,33 @@ paths:
                   $ref: "#/components/schemas/FilmInList"
         "404":
           description: Фильм не найден
+          content: {}
+
+  /films/genre/{genre}:
+    get:
+      tags:
+        - films
+      summary: Получение списка фильмов определённого жанра
+      description: Сервис возвращает список фильмов идентичных по жанру типа `genre` , отсортированный по дате публикации (по убыванию)
+      operationId: getFilmsByGenre
+      parameters:
+        - name: genre
+          in: path
+          description: Жанр фильма
+          required: true
+          schema:
+            $ref: "#/components/schemas/Genre"
+      responses:
+        "200":
+          description: Возвращает массив фильмов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FilmInList"
+        "404":
+          description: Жанр не найден
           content: {}
 
   /promo/:

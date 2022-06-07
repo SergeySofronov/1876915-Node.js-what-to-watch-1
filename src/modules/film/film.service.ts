@@ -5,6 +5,8 @@ import { FilmServiceInterface } from './film-service.interface.js';
 import { FilmEntity } from './film.entity.js';
 import { Component } from '../../types/component.type.js';
 import CreateFilmDto from './dto/create-film.dto.js';
+import EditFilmDto from './dto/edit-film.dto.js';
+import { DEFAULT_FILM_COUNT, DEFAULT_FILM_SKIP_COUNT } from './film.constant.js';
 
 @injectable()
 class FilmService implements FilmServiceInterface {
@@ -25,11 +27,28 @@ class FilmService implements FilmServiceInterface {
   }
 
   public async findById(filmId: string): Promise<DocumentType<FilmEntity> | null> {
-    return this.filmModel.findById(filmId).exec();
+    return this.filmModel.findById(filmId).populate('userId').exec();
   }
 
-  public async findAll(): Promise<DocumentType<FilmEntity>[]> {
-    return this.filmModel.find().exec();
+  public async findByGenre(genre: string, countToFetch: number, countToSkip = DEFAULT_FILM_SKIP_COUNT): Promise<DocumentType<FilmEntity>[] | null> {
+    return this.filmModel.find({ genre }).skip(countToSkip).limit(countToFetch).sort('-publicationDate').populate('userId').exec();
+  }
+
+  public async findAll(countToFetch?: number): Promise<DocumentType<FilmEntity>[] | null> {
+    const limit = countToFetch ?? DEFAULT_FILM_COUNT;
+    return this.filmModel.find().limit(limit).populate('userId').exec();
+  }
+
+  public async deleteById(filmId: string): Promise<DocumentType<FilmEntity> | null> {
+    return this.filmModel.findByIdAndDelete(filmId).exec();
+  }
+
+  public async editById(filmId: string, dto: EditFilmDto): Promise<DocumentType<FilmEntity> | null> {
+    return this.filmModel.findByIdAndUpdate(filmId, dto, { new: true }).populate('userId').exec();
+  }
+
+  public async replaceById(filmId: string, dto: CreateFilmDto): Promise<DocumentType<FilmEntity> | null> {
+    return this.filmModel.findOneAndReplace({ id: filmId }, dto, { new: true }).populate('userId').exec();
   }
 }
 

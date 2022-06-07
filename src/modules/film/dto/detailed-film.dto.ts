@@ -1,4 +1,5 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
+import UserDto from '../../user/dto/user.dto.js';
 
 class DetailedFilmDto {
   @Expose()
@@ -49,7 +50,8 @@ class DetailedFilmDto {
   @Expose()
   public backgroundColor!: string;
 
-  @Expose()
+  @Expose({ name: 'userId'})
+  @Type(() => UserDto)
   public userId!: string;
 }
 

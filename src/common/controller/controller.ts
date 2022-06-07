@@ -4,6 +4,7 @@ import asyncHandler from 'express-async-handler';
 import { RouteInterface } from '../../types/route.interface';
 import { LoggerInterface } from '../logger/logger.interface';
 import { ControllerInterface } from './controller.interface';
+import { StatusCodes } from 'http-status-codes';
 
 @injectable()
 abstract class Controller implements ControllerInterface {
@@ -18,7 +19,15 @@ abstract class Controller implements ControllerInterface {
   }
 
   public addRoute(route: RouteInterface) {
-    this._router[route.method](route.path, asyncHandler(route.handler.bind(this)));
+    const routeHandler = asyncHandler(route.handler.bind(this));
+    const middlewares = route.middlewares?.map(
+      (middleware) => asyncHandler(middleware.execute.bind(middleware))
+    );
+
+    const chainHandlers = middlewares ? [...middlewares, routeHandler] : routeHandler;
+
+
+    this._router[route.method](route.path, chainHandlers);
     this.logger.info(`Route registered: ${route.method.toUpperCase()} ${route.path}`);
   }
 
@@ -29,7 +38,17 @@ abstract class Controller implements ControllerInterface {
       .json(data);
   }
 
+  public created<T>(res: Response, data: T): void {
+    this.send(res, StatusCodes.CREATED, data);
+  }
 
+  public noContent<T>(res: Response, data: T): void {
+    this.send(res, StatusCodes.NO_CONTENT, data);
+  }
+
+  public ok<T>(res: Response, data: T): void {
+    this.send(res, StatusCodes.OK, data);
+  }
 }
 
 export default Controller;

@@ -1,4 +1,5 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
+import UserDto from '../../user/dto/user.dto.js';
 
 class ShortedFilmDto {
   @Expose()
@@ -19,7 +20,8 @@ class ShortedFilmDto {
   @Expose()
   public posterImage!: string;
 
-  @Expose()
+  @Expose({ name: 'userId' })
+  @Type(() => UserDto)
   public userId!: string;
 }
 

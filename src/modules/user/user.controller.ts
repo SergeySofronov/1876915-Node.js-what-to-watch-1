@@ -7,10 +7,11 @@ import { StatusCodes } from 'http-status-codes';
 import { LoggerInterface } from '../../common/logger/logger.interface';
 import { ConfigInterface } from '../../common/config/config.interface.js';
 import { UserServiceInterface } from './user-service.interface.js';
+import HttpError from '../../common/errors/http-error.js';
 import Controller from '../../common/controller/controller.js';
 import UserDto from './dto/user.dto.js';
 import CreateUserDto from './dto/create-user.dto.js';
-import HttpError from '../../common/errors/http-error.js';
+import LoginUserDto from './dto/login-user.dto.js';
 
 
 @injectable()
@@ -30,8 +31,25 @@ class UserController extends Controller {
     this.addRoute({ path: '/logout', method: HttpMethod.Get, handler: this.logout });
   }
 
-  public async login(_req: Request, _res: Response): Promise<void> {
-    throw new HttpError(StatusCodes.NOT_IMPLEMENTED, 'not implemented', 'UserController');
+  public async login(
+    {body}: Request<Record<string, unknown>, Record<string, unknown>, LoginUserDto>,
+    _res: Response,
+  ): Promise<void> {
+    const existsUser = await this.userService.findByEmail(body.email);
+
+    if (!existsUser) {
+      throw new HttpError(
+        StatusCodes.UNAUTHORIZED,
+        `User with email ${body.email} not found.`,
+        'UserController',
+      );
+    }
+
+    throw new HttpError(
+      StatusCodes.NOT_IMPLEMENTED,
+      'Not implemented',
+      'UserController',
+    );
   }
 
   public async checkAuth(_req: Request, _res: Response): Promise<void> {
@@ -58,7 +76,8 @@ class UserController extends Controller {
 
 
     const newUser = await this.userService.create(body, this.configService.get('SALT'));
-    this.send(res, StatusCodes.CREATED, fillDTO(UserDto, newUser));
+    console.log('Created');
+    this.created(res, fillDTO(UserDto, newUser));
   }
 }
 

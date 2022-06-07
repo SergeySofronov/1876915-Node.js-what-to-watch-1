@@ -4,8 +4,20 @@ Host: localhost:5000
 Content-Type: application/json
 ###
 
-# Получить конкретный фильм:
-GET /films/1 HTTP/1.1
+# Получить определенный фильм:
+GET /films/629f896dda0ad7f77043932d HTTP/1.1
+Host: localhost:5000
+Content-Type: application/json
+###
+
+# Получить похожие фильмы:
+GET /films/629f896dda0ad7f77043932d/similar HTTP/1.1
+Host: localhost:5000
+Content-Type: application/json
+###
+
+# Получить фильмы определенного жанра:
+GET /films/genre/drama?limit=5 HTTP/1.1
 Host: localhost:5000
 Content-Type: application/json
 ###
@@ -39,6 +51,54 @@ Content-Type: application/json
 }
 ###
 
+# Редактировать фильм:
+PATCH  /films/629e391555c7f5a2aed3400e HTTP/1.1
+Host: localhost:5000
+Content-Type: application/json
+
+{
+  "title": "Зеленая Миля",
+  "genre": "drama",
+  "released": "1973",
+  "rating": 8.8,
+  "userId": "6281421bab1588f282087ef1"
+}
+###
+
+# Заменить фильм:
+PUT  /films/629e391555c7f5a2aed3400e HTTP/1.1
+Host: localhost:5000
+Content-Type: application/json
+
+{
+  "title": "В бой идут...",
+  "description": "Эта эскадрилья стала «поющей» - так капитан Титаренко подбирал себе новичков",
+  "publicationDate": "2021-12-12T21:55:28.147Z",
+  "genre": "drama",
+  "released": "1973",
+  "rating": 8.7,
+  "previewVideoLink": "previewVideoLink",
+  "videoLink": "videoLink",
+  "starring": [
+    "Леонид Быков",
+    "Сергей Подгорный",
+    "Сергей Иванов",
+    "Алексей Смирнов"
+  ],
+  "director": "Николай Злочевский",
+  "runtime": 87,
+  "posterImage": "posterImage",
+  "backgroundImage": "backgroundImage",
+  "backgroundColor": "backgroundColor",
+  "userId": "6281421bab1588f282087ef1"
+}
+###
+
+# Удалить фильм:
+DELETE  /films/629e391555c7f5a2aed3400e HTTP/1.1
+Host: localhost:5000
+###
+
 # Создать (зарегистрировать) пользователя
 POST /register HTTP/1.1
 Host: localhost:5000
@@ -61,3 +121,10 @@ Content-Type: application/json
   "email": "vanya@russian.ru",
   "password": "torrent"
 }
+
+# {
+#   "email": "alisa@yandex.ru",
+#   "password": "torrent"
+# }
+
+###
