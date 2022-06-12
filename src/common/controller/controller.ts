@@ -24,10 +24,7 @@ abstract class Controller implements ControllerInterface {
       (middleware) => asyncHandler(middleware.execute.bind(middleware))
     );
 
-    const chainHandlers = middlewares ? [...middlewares, routeHandler] : routeHandler;
-
-
-    this._router[route.method](route.path, chainHandlers);
+    this._router[route.method](route.path, [...middlewares ?? [], routeHandler]);
     this.logger.info(`Route registered: ${route.method.toUpperCase()} ${route.path}`);
   }
 

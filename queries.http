@@ -33,7 +33,7 @@ Content-Type: application/json
   "publicationDate": "2021-12-12T21:55:28.147Z",
   "genre": "drama",
   "released": "1973",
-  "rating": 8.7,
+  "rating": 8,
   "previewVideoLink": "previewVideoLink",
   "videoLink": "videoLink",
   "starring": [
@@ -52,7 +52,7 @@ Content-Type: application/json
 ###
 
 # Редактировать фильм:
-PATCH  /films/629e391555c7f5a2aed3400e HTTP/1.1
+PATCH  /films/62a4ddca259cdeebaf1d0881 HTTP/1.1
 Host: localhost:5000
 Content-Type: application/json
 
@@ -60,13 +60,12 @@ Content-Type: application/json
   "title": "Зеленая Миля",
   "genre": "drama",
   "released": "1973",
-  "rating": 8.8,
-  "userId": "6281421bab1588f282087ef1"
+  "rating": 9
 }
 ###
 
 # Заменить фильм:
-PUT  /films/629e391555c7f5a2aed3400e HTTP/1.1
+PUT  /films/62a4ddca259cdeebaf1d0881 HTTP/1.1
 Host: localhost:5000
 Content-Type: application/json
 
@@ -76,7 +75,7 @@ Content-Type: application/json
   "publicationDate": "2021-12-12T21:55:28.147Z",
   "genre": "drama",
   "released": "1973",
-  "rating": 8.7,
+  "rating": 8,
   "previewVideoLink": "previewVideoLink",
   "videoLink": "videoLink",
   "starring": [
@@ -95,7 +94,7 @@ Content-Type: application/json
 ###
 
 # Удалить фильм:
-DELETE  /films/629e391555c7f5a2aed3400e HTTP/1.1
+DELETE  /films/62a4ddca259cdeebaf1d0881 HTTP/1.1
 Host: localhost:5000
 ###
 
@@ -127,4 +126,17 @@ Content-Type: application/json
 #   "password": "torrent"
 # }
 
+###
+
+#  Отправка аватарки пользователю
+POST /6281421bab1588f282087ef1/avatar HTTP/1.1
+Host: localhost:5000
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="avatar"; filename="04.jpg"
+Content-Type: image/jpeg
+
+< D:/загрузки/04.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
 ###

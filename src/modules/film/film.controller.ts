@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
-import { ValidateObjectIdMiddleware } from '../../middlewares/validate-objectid.middleware.js';
 import { fillDTO } from '../../utils/common.js';
 import { Component } from '../../types/component.type.js';
 import { HttpMethod } from '../../types/http-method.enum.js';
@@ -8,17 +7,19 @@ import { LoggerInterface } from '../../common/logger/logger.interface';
 import { FilmServiceInterface } from './film-service.interface';
 import { StatusCodes } from 'http-status-codes';
 import { RequestQuery } from '../../types/request-query.type.js';
+import { DEFAULT_FILM_COUNT, SIMILAR_FILM_COUNT, SIMILAR_FILM_SKIP_COUNT } from './film.constant.js';
+import ValidateDtoMiddleware from '../../middlewares/validate-dto.middleware.js';
+import ValidateObjectIdMiddleware from '../../middlewares/validate-objectid.middleware.js';
 import Controller from '../../common/controller/controller.js';
 import ShortedFilmDto from './dto/shorted-film.dto.js';
 import CreateFilmDto from './dto/create-film.dto.js';
 import DetailedFilmDto from './dto/detailed-film.dto.js';
 import HttpError from '../../common/errors/http-error.js';
-import * as core from 'express-serve-static-core';
 import EditFilmDto from './dto/edit-film.dto.js';
-import { DEFAULT_FILM_COUNT, SIMILAR_FILM_COUNT, SIMILAR_FILM_SKIP_COUNT } from './film.constant.js';
+import * as core from 'express-serve-static-core';
 
 type ParamsGetFilm = {
-  id: string;
+  filmId: string;
   genre: string;
 }
 
@@ -33,16 +34,16 @@ class FilmController extends Controller {
     this.logger.info('Register routes for FilmController...');
 
     this.addRoute({ path: '/films', method: HttpMethod.Get, handler: this.fetchFilms });  // Получить список всех фильмов
-    this.addRoute({ path: '/films', method: HttpMethod.Post, handler: this.createFilm }); // Добавить новый фильм
-    this.addRoute({ path: '/films/:id', method: HttpMethod.Get, handler: this.fetchFilm, middlewares: [new ValidateObjectIdMiddleware('id')] }); // Получение детальной информации по фильму
-    this.addRoute({ path: '/films/:id', method: HttpMethod.Patch, handler: this.editFilm, middlewares: [new ValidateObjectIdMiddleware('id')] }); // Частичное редактирование карточки фильма
-    this.addRoute({ path: '/films/:id', method: HttpMethod.Put, handler: this.replaceFilm, middlewares: [new ValidateObjectIdMiddleware('id')] }); // Полное редактирование карточки фильма
-    this.addRoute({ path: '/films/:id', method: HttpMethod.Delete, handler: this.deleteFilm, middlewares: [new ValidateObjectIdMiddleware('id')] }); // Удаление фильма
-    this.addRoute({ path: '/films/:id/similar', method: HttpMethod.Get, handler: this.fetchSimilarFilms, middlewares: [new ValidateObjectIdMiddleware('id')] }); // Получение списка похожих фильмов
+    this.addRoute({ path: '/films', method: HttpMethod.Post, handler: this.createFilm, middlewares: [new ValidateDtoMiddleware(CreateFilmDto)] }); // Добавить новый фильм
+    this.addRoute({ path: '/films/:filmId', method: HttpMethod.Get, handler: this.fetchFilm, middlewares: [new ValidateObjectIdMiddleware('filmId')] }); // Получение детальной информации по фильму
+    this.addRoute({ path: '/films/:filmId', method: HttpMethod.Patch, handler: this.editFilm, middlewares: [new ValidateObjectIdMiddleware('filmId'), new ValidateDtoMiddleware(EditFilmDto)] }); // Частичное редактирование карточки фильма
+    this.addRoute({ path: '/films/:filmId', method: HttpMethod.Put, handler: this.replaceFilm, middlewares: [new ValidateObjectIdMiddleware('filmId'), new ValidateDtoMiddleware(CreateFilmDto)] }); // Полное редактирование карточки фильма
+    this.addRoute({ path: '/films/:filmId', method: HttpMethod.Delete, handler: this.deleteFilm, middlewares: [new ValidateObjectIdMiddleware('filmId')] }); // Удаление фильма
+    this.addRoute({ path: '/films/:filmId/similar', method: HttpMethod.Get, handler: this.fetchSimilarFilms, middlewares: [new ValidateObjectIdMiddleware('filmId')] }); // Получение списка похожих фильмов
     this.addRoute({ path: '/films/genre/:genre', method: HttpMethod.Get, handler: this.fetchFilmsByGenre }); // Получение списка похожих фильмов
     this.addRoute({ path: '/promo', method: HttpMethod.Get, handler: this.fetchPromoFilm }); // Получение промо-фильма
     this.addRoute({ path: '/favorite', method: HttpMethod.Get, handler: this.fetchFavoriteFilms }); // Получение списка фильмов «К просмотру»
-    this.addRoute({ path: '/favorite/:id/:isFavorite', method: HttpMethod.Post, handler: this.setFavoriteFilm, middlewares: [new ValidateObjectIdMiddleware('id')] }); // Получение списка фильмов «К просмотру»
+    this.addRoute({ path: '/favorite/:filmId/:isFavorite', method: HttpMethod.Post, handler: this.setFavoriteFilm, middlewares: [new ValidateObjectIdMiddleware('filmId')] }); // Получение списка фильмов «К просмотру»
   }
 
   public async setFavoriteFilm(_req: Request, _res: Response): Promise<void> {
@@ -69,13 +70,13 @@ class FilmController extends Controller {
   public async fetchSimilarFilms(
     { params, query }: Request<core.ParamsDictionary | ParamsGetFilm, unknown, unknown, RequestQuery>,
     res: Response): Promise<void> {
-    const { id } = params;
-    const film = await this.filmService.findById(id);
+    const { filmId } = params;
+    const film = await this.filmService.findById(filmId);
 
     if (!film) {
       throw new HttpError(
         StatusCodes.NOT_FOUND,
-        `Film with id ${id} not found.`,
+        `Film with id ${filmId} not found.`,
         'FilmController'
       );
     }
@@ -88,13 +89,13 @@ class FilmController extends Controller {
     { params }: Request<core.ParamsDictionary | ParamsGetFilm>,
     res: Response
   ): Promise<void> {
-    const { id } = params;
-    const film = await this.filmService.deleteById(id);
+    const { filmId } = params;
+    const film = await this.filmService.deleteById(filmId);
 
     if (!film) {
       throw new HttpError(
         StatusCodes.NOT_FOUND,
-        `Film with id ${id} not found.`,
+        `Film with id ${filmId} not found.`,
         'FilmController'
       );
     }
@@ -105,13 +106,13 @@ class FilmController extends Controller {
     { body, params }: Request<core.ParamsDictionary | ParamsGetFilm, Record<string, unknown>, CreateFilmDto>,
     res: Response
   ): Promise<void> {
-    const { id } = params;
-    const editedFilm = await this.filmService.replaceById(id, body);
+    const { filmId } = params;
+    const editedFilm = await this.filmService.replaceById(filmId, body);
 
     if (!editedFilm) {
       throw new HttpError(
         StatusCodes.NOT_FOUND,
-        `Film with id ${id} not found.`,
+        `Film with id ${filmId} not found.`,
         'FilmController'
       );
     }
@@ -122,13 +123,13 @@ class FilmController extends Controller {
     { body, params }: Request<core.ParamsDictionary | ParamsGetFilm, Record<string, unknown>, EditFilmDto>,
     res: Response
   ): Promise<void> {
-    const { id } = params;
-    const editedFilm = await this.filmService.editById(id, body);
+    const { filmId } = params;
+    const editedFilm = await this.filmService.editById(filmId, body);
 
     if (!editedFilm) {
       throw new HttpError(
         StatusCodes.NOT_FOUND,
-        `Film with id ${id} not found.`,
+        `Film with id ${filmId} not found.`,
         'FilmController'
       );
     }
@@ -139,13 +140,13 @@ class FilmController extends Controller {
     { params }: Request<core.ParamsDictionary | ParamsGetFilm>,
     res: Response
   ): Promise<void> {
-    const { id } = params;
-    const film = await this.filmService.findById(id);
+    const { filmId } = params;
+    const film = await this.filmService.findById(filmId);
 
     if (!film) {
       throw new HttpError(
         StatusCodes.NOT_FOUND,
-        `Film with id ${id} not found.`,
+        `Film with id ${filmId} not found.`,
         'FilmController'
       );
     }

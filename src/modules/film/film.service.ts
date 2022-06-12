@@ -36,7 +36,7 @@ class FilmService implements FilmServiceInterface {
 
   public async findAll(countToFetch?: number): Promise<DocumentType<FilmEntity>[] | null> {
     const limit = countToFetch ?? DEFAULT_FILM_COUNT;
-    return this.filmModel.find().limit(limit).populate('userId').exec();
+    return this.filmModel.find().limit(limit).sort('-publicationDate').populate('userId').exec();
   }
 
   public async deleteById(filmId: string): Promise<DocumentType<FilmEntity> | null> {

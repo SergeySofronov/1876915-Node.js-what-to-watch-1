@@ -2,6 +2,13 @@ import crypto from 'crypto';
 import { Film } from '../types/film.type';
 import { plainToInstance, ClassConstructor } from 'class-transformer';
 
+enum ValidityMessage {
+  isStringMessage = 'Field \u00AB$property\u00BB must be a string',
+  isNotEmptyMessage = 'Field \u00AB$property\u00BB must not be empty',
+  minValueMessage = 'Field \u00AB$property\u00BB value/length must be equal or greater than $constraint1',
+  maxValueMessage = 'Field \u00AB$property\u00BB value/length must be equal or less than $constraint1',
+}
+
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : '';
 
@@ -82,4 +89,11 @@ const createFilm = (rowData: string): Film => {
   });
 };
 
-export { getErrorMessage, createFilm, createSHA256, fillDTO, createErrorObject };
+export {
+  getErrorMessage,
+  createFilm,
+  createSHA256,
+  fillDTO,
+  createErrorObject,
+  ValidityMessage
+};

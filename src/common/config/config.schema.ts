@@ -11,6 +11,7 @@ type ConfigSchema = {
   DB_PASSWORD: string;
   DB_PORT: number;
   DB_NAME: string;
+  UPLOAD_DIRECTORY: string;
 }
 
 const configSchema = convict<ConfigSchema>({
@@ -55,6 +56,12 @@ const configSchema = convict<ConfigSchema>({
     format: String,
     env: 'DB_NAME',
     default: 'course-nodejs-rest-mongodb'
+  },
+  UPLOAD_DIRECTORY: {
+    doc: 'Directory for upload files',
+    format: String,
+    env: 'UPLOAD_DIRECTORY',
+    default: null
   }
 });
 

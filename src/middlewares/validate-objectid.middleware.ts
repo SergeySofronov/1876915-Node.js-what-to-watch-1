@@ -22,4 +22,4 @@ class ValidateObjectIdMiddleware implements MiddlewareInterface {
   }
 }
 
-export { ValidateObjectIdMiddleware };
+export default ValidateObjectIdMiddleware;
