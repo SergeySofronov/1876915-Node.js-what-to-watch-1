@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import express, { Express } from 'express';
+import express, { Express, Request, Response } from 'express';
 import { DatabaseInterface } from '../common/database-client/database.interface.js';
 import { ConfigInterface } from '../common/config/config.interface.js';
 import { LoggerInterface } from '../common/logger/logger.interface.js';
@@ -7,10 +7,14 @@ import { ControllerInterface } from '../common/controller/controller.interface.j
 import { ExceptionFilterInterface } from '../common/errors/exception-filter.interface.js';
 import { Component } from '../types/component.type.js';
 import { getURI } from '../utils/db.js';
+import { getNotFoundPage } from '../utils/common.js';
+import { StatusCodes } from 'http-status-codes';
+import AuthenticateMiddleware from '../middlewares/authenticate.middleware.js';
 
 @injectable()
 class Application {
   private expressApp: Express;
+  private authenticationMiddleware: AuthenticateMiddleware;
 
   constructor(
     @inject(Component.LoggerInterface) private logger: LoggerInterface,
@@ -19,18 +23,29 @@ class Application {
     @inject(Component.ExceptionFilter) private exceptionFilter: ExceptionFilterInterface,
     @inject(Component.FilmController) private filmController: ControllerInterface,
     @inject(Component.UserController) private userController: ControllerInterface,
-    @inject(Component.CommentController) private commentController: ControllerInterface
-  ) { this.expressApp = express(); }
+    @inject(Component.CommentController) private commentController: ControllerInterface,
+    @inject(Component.FavoritesController) private favoritesController: ControllerInterface
+  ) {
+    this.expressApp = express();
+    this.authenticationMiddleware = new AuthenticateMiddleware(this.config.get('JWT_SECRET'));
+  }
+
+  private defaultRouteHandler(req: Request, res: Response) {
+    res.type('text/html').status(StatusCodes.NOT_FOUND).send(getNotFoundPage(req.path));
+  }
 
   public registerRoutes() {
     this.expressApp.use('/', this.filmController.router);
     this.expressApp.use('/', this.userController.router);
     this.expressApp.use('/comments', this.commentController.router);
+    this.expressApp.use('/favorite', this.favoritesController.router);
+    this.expressApp.route('*').all(this.defaultRouteHandler);
   }
 
   public registerMiddlewares() {
     this.expressApp.use(express.json());
     this.expressApp.use('/upload', express.static(this.config.get('UPLOAD_DIRECTORY')));
+    this.expressApp.use(this.authenticationMiddleware.execute.bind(this.authenticationMiddleware));
   }
 
   public registerExceptionFilters() {

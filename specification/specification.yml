@@ -552,7 +552,7 @@ components:
               example: 507f1f77bcf86cd799439011
             date:
               $ref: "#/components/schemas/Date"
-            author:
+            user:
               $ref: "#/components/schemas/User"
         - $ref: "#/components/schemas/CreateComment"
 

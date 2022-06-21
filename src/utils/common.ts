@@ -1,6 +1,15 @@
 import crypto from 'crypto';
+import * as jose from 'jose';
 import { Film } from '../types/film.type';
 import { plainToInstance, ClassConstructor } from 'class-transformer';
+import { FilmGenreType } from '../types/film-genre.enum.js';
+import { EntityFilter } from '../types/entity-filter.type.js';
+import { JWT_MAX_AGE } from '../modules/user/user.constant.js';
+
+type GroupFilter = {
+  filmFilter?: EntityFilter;
+  userFilter?: EntityFilter;
+}
 
 enum ValidityMessage {
   isStringMessage = 'Field \u00AB$property\u00BB must be a string',
@@ -17,12 +26,33 @@ const createSHA256 = (line: string, salt: string): string => {
   return shaHasher.update(line).digest('hex');
 };
 
-const fillDTO = <T, V>(someDto: ClassConstructor<T>, plainObject: V) =>
-  plainToInstance(someDto, plainObject, { excludeExtraneousValues: true });
+
+const fillDTO = <T, V>(someDto: ClassConstructor<T>, plainObject: V, groups?: GroupFilter) =>
+  plainToInstance(someDto, plainObject, { excludeExtraneousValues: true, groups: [`${groups?.filmFilter ?? EntityFilter.FILM_FULL}`, `${groups?.userFilter ?? EntityFilter.USER_FULL}`] });
 
 const createErrorObject = (message: string) => ({
   error: message,
 });
+
+const getNotFoundPage = (path: string) => (
+  `<!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="utf-8">
+  <title>Error</title>
+  </head>
+  <body>
+  <pre>Cannot GET ${path}</pre>
+  </body>
+  </html>`
+);
+
+export const createJWT = async (algorithm: string, jwtSecret: string, payload: object): Promise<string> =>
+  new jose.SignJWT({ ...payload })
+    .setProtectedHeader({ alg: algorithm })
+    .setIssuedAt()
+    .setExpirationTime(JWT_MAX_AGE)
+    .sign(crypto.createSecretKey(jwtSecret, 'utf-8'));
 
 const createFilm = (rowData: string): Film => {
   const chunk = rowData.replace('\n', '').split('\t');
@@ -52,7 +82,7 @@ const createFilm = (rowData: string): Film => {
     title,
     description,
     publicationDate,
-    genre,
+    genre: FilmGenreType[genre as keyof typeof FilmGenreType],
     released,
     rating: Number.parseFloat(rating),
     previewVideoLink,
@@ -72,7 +102,7 @@ const createFilm = (rowData: string): Film => {
           comment,
           rating: Number.parseFloat(commentRating),
           date: commentDate,
-          author: {
+          user: {
             name: authorName,
             email: authorEmail,
             avatar: authorAvatar,
@@ -95,5 +125,6 @@ export {
   createSHA256,
   fillDTO,
   createErrorObject,
-  ValidityMessage
+  ValidityMessage,
+  getNotFoundPage
 };

@@ -4,4 +4,8 @@ interface MiddlewareInterface {
   execute(req: Request, res: Response, next: NextFunction): void;
 }
 
-export { MiddlewareInterface };
+interface DocumentExistsInterface {
+  exists(documentId: string): Promise<boolean>;
+}
+
+export { MiddlewareInterface, DocumentExistsInterface };

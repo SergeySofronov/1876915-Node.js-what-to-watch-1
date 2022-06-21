@@ -1,11 +1,12 @@
-import { Comment } from './comment.type';
 import { User } from './user.type';
+import { Comment } from './comment.type';
+import { FilmGenreType } from './film-genre.enum';
 
 type Film = {
   title: string;
   description: string;
   publicationDate: string;
-  genre: string;
+  genre: FilmGenreType;
   released: string;
   rating: number;
   previewVideoLink: string;

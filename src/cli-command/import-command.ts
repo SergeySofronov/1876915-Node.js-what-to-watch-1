@@ -1,9 +1,11 @@
 import { UserModel } from '../modules/user/user.entity.js';
 import { FilmModel } from '../modules/film/film.entity.js';
+import { CommentModel } from '../modules/comment/comment.entity.js';
 import { DatabaseInterface } from '../common/database-client/database.interface.js';
 import { LoggerInterface } from '../common/logger/logger.interface.js';
 import { FilmServiceInterface } from '../modules/film/film-service.interface.js';
 import { UserServiceInterface } from '../modules/user/user-service.interface.js';
+import { CommentServiceInterface } from '../modules/comment/comment-service.interface.js';
 import { CliCommandInterface } from './cli-command.interface';
 import { ConfigInterface } from '../common/config/config.interface.js';
 import { createFilm, getErrorMessage } from '../utils/common.js';
@@ -15,12 +17,14 @@ import UserService from '../modules/user/user.service.js';
 import DatabaseService from '../common/database-client/database.service.js';
 import ConsoleLoggerService from '../common/logger/console-logger.service.js';
 import ConfigService from '../common/config/config.service.js';
+import CommentService from '../modules/comment/comment.service.js';
 
 class ImportCommand implements CliCommandInterface {
   public readonly name = '--import';
   private fileReader!: TSVFileReader;
   private userService!: UserServiceInterface;
   private filmService!: FilmServiceInterface;
+  private commentService!: CommentServiceInterface;
   private databaseService!: DatabaseInterface;
   private config!: ConfigInterface;
   private logger: LoggerInterface;
@@ -30,21 +34,32 @@ class ImportCommand implements CliCommandInterface {
     this.logger = new ConsoleLoggerService();
     this.filmService = new FilmService(this.logger, FilmModel);
     this.userService = new UserService(this.logger, UserModel);
+    this.commentService = new CommentService(this.logger, CommentModel);
     this.databaseService = new DatabaseService(this.logger);
     this.config = new ConfigService(this.logger);
   }
 
   private async saveFilm(film: Film) {
-    const user = await this.userService.findOrCreate(film.user, this.salt);
-    await this.filmService.create({
+    let user = await this.userService.findOrCreate(film.user, this.salt);
+    const newFilm = await this.filmService.create({
       ...film,
       userId: user.id,
     });
+
+    for (const comment of film.comments) {
+      user = await this.userService.findOrCreate(comment.user, this.salt);
+      await this.commentService.findOrCreate(newFilm.id, { ...comment, userId: user.id, filmId:newFilm.id });
+    }
+
   }
 
   private onLine = async (line: string, resolve: () => void) => {
-    const film = createFilm(line);
-    await this.saveFilm(film);
+    try {
+      const film = createFilm(line);
+      await this.saveFilm(film);
+    } catch (err) {
+      this.logger.error(`Can't create film: ${getErrorMessage(err)}`);
+    }
     resolve();
   };
 

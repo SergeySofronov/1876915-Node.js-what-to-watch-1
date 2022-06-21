@@ -4,8 +4,10 @@ import multer from 'multer';
 import { nanoid } from 'nanoid';
 import { NextFunction, Request, Response } from 'express';
 import { MiddlewareInterface } from '../types/middleware.interface';
+import { FileExtensions } from '../types/file-extensions.js';
+import { StatusCodes } from 'http-status-codes';
+import HttpError from '../common/errors/http-error.js';
 
-const FileExtensions = ['.jpg', '.jpeg', '.png'];
 
 class UploadFileMiddleware implements MiddlewareInterface {
   constructor(
@@ -20,7 +22,11 @@ class UploadFileMiddleware implements MiddlewareInterface {
       filename: (_req, file, cb) => {
         const extension = mime.extension(file.mimetype);
         const filename = nanoid();
-        cb(null, `${filename}.${extension}`);
+        cb(extension ? null : new HttpError(
+          StatusCodes.BAD_REQUEST,
+          'Wrong content-type. For example: \u00ABimage/jpeg\u00BB',
+          'UploadFileMiddleware'
+        ), `${filename}.${extension}`);
       }
     });
 

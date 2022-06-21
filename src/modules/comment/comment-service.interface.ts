@@ -4,6 +4,9 @@ import CreateCommentDto from './dto/create-comment.dto.js';
 
 interface CommentServiceInterface {
   create(dto: CreateCommentDto): Promise<DocumentType<CommentEntity>>;
+  findByFilmId(filmId: string, countToFetch?: number): Promise<DocumentType<CommentEntity>[] | null>;
+  findOrCreate(filmId: string, dto: CreateCommentDto): Promise<DocumentType<CommentEntity>>;
+  getFilmRating(filmId: string): Promise<number>;
 }
 
 export { CommentServiceInterface };

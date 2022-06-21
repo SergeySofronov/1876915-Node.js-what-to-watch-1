@@ -4,7 +4,7 @@ type Comment = {
   comment: string;
   rating: number;
   date: string;
-  author: User;
+  user: User;
 }
 
 export { type Comment };
