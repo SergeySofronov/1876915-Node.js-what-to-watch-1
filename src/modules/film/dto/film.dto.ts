@@ -57,7 +57,7 @@ class FilmDto {
   @Type(() => UserDto)
   public user!: string;
 
-  @Expose({ groups: [full] })
+  @Expose({ groups: [full, short] })
   public isFavorite!: boolean;
 }
 

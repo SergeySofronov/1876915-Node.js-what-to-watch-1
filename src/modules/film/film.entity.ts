@@ -66,6 +66,9 @@ export class FilmEntity extends defaultClasses.TimeStamps {
     required: true
   })
   public userId!: Ref<UserEntity>;
+
+  @prop({ required: true, default: false })
+  public isFavorite!: boolean;
 }
 
 export const FilmModel = getModelForClass(FilmEntity);

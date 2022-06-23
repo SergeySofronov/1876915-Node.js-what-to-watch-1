@@ -35,21 +35,22 @@ class FavoritesController extends Controller {
   }
 
   public async setFavoriteFilm(
-    { params, user }: Request<core.ParamsDictionary | ParamsFavorites>,
+    { params, user: { userId } }: Request<core.ParamsDictionary | ParamsFavorites>,
     res: Response): Promise<void> {
     const filmId = params.filmId;
-    const userId = user.id;
     const isFavorite = Boolean(Number(params.isFavorite));
-    const film = await this.filmService.findById(filmId);
+    const film = await this.filmService.findById(userId, filmId);
     await this.favoritesService.setFavoriteFilm({ filmId, userId }, isFavorite);
-
-    this.ok(res, fillDTO(FilmDto, { ...film?.toObject(), isFavorite }));
+    if (film && film?.isFavorite !== true) {
+      film.isFavorite = true;
+    }
+    this.ok(res, fillDTO(FilmDto, film));
   }
 
   public async fetchFavoriteFilms(
-    { user }: Request,
+    { user: { userId } }: Request,
     res: Response): Promise<void> {
-    const films = await this.filmService.getFavoriteFilms(user.id);
+    const films = await this.filmService.find(userId, Number.MAX_SAFE_INTEGER, undefined, true);
 
     this.ok(res, fillDTO(FilmDto, films));
   }

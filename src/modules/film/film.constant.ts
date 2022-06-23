@@ -1,7 +1,5 @@
 const DEFAULT_FILM_COUNT = 60;
 const SIMILAR_FILM_COUNT = 4;
-const DEFAULT_FILM_SKIP_COUNT = 0;
-const SIMILAR_FILM_SKIP_COUNT = 1;
 
 enum FilmValidity {
   TitleMinLength = 2,
@@ -17,7 +15,5 @@ enum FilmValidity {
 export {
   DEFAULT_FILM_COUNT,
   SIMILAR_FILM_COUNT,
-  DEFAULT_FILM_SKIP_COUNT,
-  SIMILAR_FILM_SKIP_COUNT,
   FilmValidity
 };

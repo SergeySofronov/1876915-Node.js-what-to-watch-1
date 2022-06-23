@@ -1,4 +1,4 @@
-import { ArrayNotEmpty, IsArray, IsDateString, IsEnum, IsInt, IsMongoId, IsNotEmpty, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsDateString, IsEnum, IsInt, IsNotEmpty, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
 import { FilmGenreType } from '../../../types/film-genre.enum.js';
 import { ValidityMessage as VM } from '../../../utils/common.js';
 import { FilmValidity as FV } from '../film.constant.js';
@@ -62,7 +62,6 @@ class CreateFilmDto {
   @IsNotEmpty({ message: VM.isNotEmptyMessage })
   public backgroundColor!: string;
 
-  @IsMongoId({ message: 'Field \u00AB$property\u00BB must be valid identificator' })
   public userId!: string;
 }
 

@@ -44,10 +44,10 @@ class CommentController extends Controller {
   }
 
   public async createComment(
-    { body, params, user }: Request<core.ParamsDictionary | ParamsGetFilm, Record<string, unknown>, CreateCommentDto>,
+    { body, params, user: { userId } }: Request<core.ParamsDictionary | ParamsGetFilm, Record<string, unknown>, CreateCommentDto>,
     res: Response): Promise<void> {
     const filmId = params.filmId;
-    const comment = await this.commentService.create({ ...body, filmId, userId: user.id });
+    const comment = await this.commentService.create({ ...body, filmId, userId });
     const filmRating = await this.commentService.getFilmRating(filmId);
     await this.filmService.incCommentCount(filmId, filmRating);
     this.created(res, fillDTO(CommentDto, comment, { userFilter: EntityFilter.USER_FOR_COMMENT }));

@@ -6,15 +6,13 @@ import EditFilmDto from './dto/edit-film.dto.js';
 
 interface FilmServiceInterface extends DocumentExistsInterface {
   create(dto: CreateFilmDto): Promise<DocumentType<FilmEntity>>;
-  findById(filmId: string): Promise<DocumentType<FilmEntity> | null>;
-  findByGenre(genre: string, countToFetch: number, countToSkip?: number): Promise<DocumentType<FilmEntity>[] | null>;
-  findByTitle(filmTitle: string): Promise<DocumentType<FilmEntity> | null>;
-  findAll(countToFetch?: number): Promise<DocumentType<FilmEntity>[] | null>;
+  findById(userId: string, filmId: string): Promise<DocumentType<FilmEntity> | null>;
+  findByGenre(userId: string, genre: string, countToFetch: number): Promise<DocumentType<FilmEntity>[] | null>;
+  find(userId: string, countToFetch?: number, searchOptions?: Record<string | number, unknown>, isFavoriteOnly?: boolean): Promise<DocumentType<FilmEntity>[] | null>;
   deleteById(filmId: string): Promise<DocumentType<FilmEntity> | null>;
   editById(filmId: string, dto: EditFilmDto): Promise<DocumentType<FilmEntity> | null>;
   replaceById(filmId: string, dto: CreateFilmDto): Promise<DocumentType<FilmEntity> | null>;
   incCommentCount(filmId: string, filmRating: number): Promise<DocumentType<FilmEntity> | null>;
-  getFavoriteFilms(userId: string): Promise<DocumentType<FilmEntity>[] | null>
 }
 
 export { FilmServiceInterface };

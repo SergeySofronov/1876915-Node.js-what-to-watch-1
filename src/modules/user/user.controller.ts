@@ -68,7 +68,7 @@ class UserController extends Controller {
     const token = await createJWT(
       JWT_ALGORITHM,
       this.configService.get('JWT_SECRET'),
-      { email: user.email, id: user.id, name: user.name, avatar: user.avatar }
+      { email: user.email, userId: user.id, name: user.name, avatar: user.avatar }
     );
 
     this.ok(res, fillDTO(LoggedUserDto, { ...user.toObject(), token }));

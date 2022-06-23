@@ -6,7 +6,8 @@ import { FilmEntity } from './film.entity.js';
 import { Component } from '../../types/component.type.js';
 import CreateFilmDto from './dto/create-film.dto.js';
 import EditFilmDto from './dto/edit-film.dto.js';
-import { DEFAULT_FILM_COUNT, DEFAULT_FILM_SKIP_COUNT } from './film.constant.js';
+import { DEFAULT_FILM_COUNT } from './film.constant.js';
+import { mongoose } from '@typegoose/typegoose';
 
 @injectable()
 class FilmService implements FilmServiceInterface {
@@ -26,41 +27,20 @@ class FilmService implements FilmServiceInterface {
     return (await this.filmModel.exists({ _id: documentId })) !== null;
   }
 
-  public async findByTitle(filmTitle: string): Promise<DocumentType<FilmEntity> | null> {
-    return this.filmModel.findOne({ title: filmTitle }).exec();
+  public async findById(userId: string, filmId: string): Promise<DocumentType<FilmEntity> | null> {
+    const films = await this.find(userId, 1, { '_id': new mongoose.Types.ObjectId(filmId) });
+    return films ? films[0] : null;
   }
 
-  public async findById(filmId: string): Promise<DocumentType<FilmEntity> | null> {
-    return this.filmModel.findById(filmId).populate('userId').exec();
+  public async findByGenre(userId: string, genre: string, countToFetch: number): Promise<DocumentType<FilmEntity>[] | null> {
+    return this.find(userId, countToFetch, { genre });
   }
 
-  public async findByGenre(genre: string, countToFetch: number, countToSkip = DEFAULT_FILM_SKIP_COUNT): Promise<DocumentType<FilmEntity>[] | null> {
-    return this.filmModel.find({ genre }).skip(countToSkip).limit(countToFetch).sort('-publicationDate').populate('userId').exec();
-  }
-
-  public async findAll(countToFetch?: number): Promise<DocumentType<FilmEntity>[] | null> {
+  public async find(userId = '', countToFetch?: number, searchOptions?: Record<string | number, unknown>, isFavoriteOnly = false): Promise<DocumentType<FilmEntity>[] | null> {
     const limit = countToFetch ?? DEFAULT_FILM_COUNT;
-    return this.filmModel.find().limit(limit).sort('-publicationDate').populate('userId').exec();
-  }
+    const match = searchOptions ? Object.entries(searchOptions).map(([key, value]) => ({ $eq: [`$${key}`, value] })) : {};
 
-  public async deleteById(filmId: string): Promise<DocumentType<FilmEntity> | null> {
-    return this.filmModel.findByIdAndDelete(filmId).exec();
-  }
-
-  public async editById(filmId: string, dto: EditFilmDto): Promise<DocumentType<FilmEntity> | null> {
-    return this.filmModel.findByIdAndUpdate(filmId, dto, { new: true }).populate('userId').exec();
-  }
-
-  public async replaceById(filmId: string, dto: CreateFilmDto): Promise<DocumentType<FilmEntity> | null> {
-    return this.filmModel.findOneAndReplace({ id: filmId }, dto, { new: true }).populate('userId').exec();
-  }
-
-  public async incCommentCount(filmId: string, filmRating: number): Promise<DocumentType<FilmEntity> | null> {
-    return this.filmModel.findByIdAndUpdate(filmId, { '$inc': { commentsCount: 1 }, rating: filmRating }, { new: true }).exec();
-  }
-
-  public async getFavoriteFilms(userId: string): Promise<DocumentType<FilmEntity>[] | null> {
-    return await this.filmModel.aggregate([
+    return this.filmModel.aggregate([
       {
         $lookup: {
           from: 'favorites',
@@ -81,19 +61,31 @@ class FilmService implements FilmServiceInterface {
         }
       },
       {
+        $match: { $expr: { $and: match } }
+      },
+      {
         $addFields: {
-          _id: '$filmId',
+          id: { $toString: '$_id' },
           isFavorite: { $gt: [{ $size: '$favorites' }, 0] }
-        },
+        }
       },
       {
         $match: {
           $expr: {
-            $eq: ['$isFavorite', true]
+            $switch: {
+              branches: [
+                {
+                  case: { $eq: [isFavoriteOnly, false] },
+                  then: true
+                }
+              ], default: { $eq: ['$isFavorite', true] }
+            }
           }
         }
       },
       { $unset: 'favorites' },
+      { $limit: limit },
+      { $sort: { publicationDate: -1 } },
       {
         $lookup: {
           from: 'users',
@@ -106,6 +98,22 @@ class FilmService implements FilmServiceInterface {
         $unwind: '$userId'
       }
     ]).exec();
+  }
+
+  public async deleteById(filmId: string): Promise<DocumentType<FilmEntity> | null> {
+    return this.filmModel.findByIdAndDelete(filmId).exec();
+  }
+
+  public async editById(filmId: string, dto: EditFilmDto): Promise<DocumentType<FilmEntity> | null> {
+    return this.filmModel.findByIdAndUpdate(filmId, dto, { new: true }).populate('userId').exec();
+  }
+
+  public async replaceById(filmId: string, dto: CreateFilmDto): Promise<DocumentType<FilmEntity> | null> {
+    return this.filmModel.findOneAndReplace({ id: filmId }, dto, { new: true }).populate('userId').exec();
+  }
+
+  public async incCommentCount(filmId: string, filmRating: number): Promise<DocumentType<FilmEntity> | null> {
+    return this.filmModel.findByIdAndUpdate(filmId, { '$inc': { commentsCount: 1 }, rating: filmRating }, { new: true }).exec();
   }
 }
 
