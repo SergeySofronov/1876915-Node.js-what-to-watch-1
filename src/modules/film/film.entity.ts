@@ -28,22 +28,22 @@ export class FilmEntity extends defaultClasses.TimeStamps {
   })
   public genre!: string;
 
-  @prop({ required: true })
+  @prop({ required: true, trim: true })
   public released!: string;
 
   @prop({ required: true })
   public rating!: number;
 
-  @prop({ required: true })
+  @prop({ required: true, trim: true })
   public previewVideoLink!: string;
 
-  @prop({ required: true })
+  @prop({ required: true, trim: true })
   public videoLink!: string;
 
   @prop({ required: true, _id: false })
   public starring!: string[];
 
-  @prop({ required: true })
+  @prop({ required: true, trim: true })
   public director!: string;
 
   @prop({ required: true })
@@ -52,13 +52,13 @@ export class FilmEntity extends defaultClasses.TimeStamps {
   @prop({ required: true, default: 0 })
   public commentsCount!: number;
 
-  @prop({ required: true })
+  @prop({ required: true, trim: true })
   public posterImage!: string;
 
-  @prop({ required: true })
+  @prop({ required: true, trim: true })
   public backgroundImage!: string;
 
-  @prop({ required: true })
+  @prop({ required: true, trim: true })
   public backgroundColor!: string;
 
   @prop({

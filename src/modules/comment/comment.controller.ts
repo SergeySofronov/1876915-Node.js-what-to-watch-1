@@ -7,6 +7,7 @@ import { HttpMethod } from '../../types/http-method.enum.js';
 import { EntityFilter } from '../../types/entity-filter.type.js';
 import { RequestQuery } from '../../types/request-query.type.js';
 import { LoggerInterface } from '../../common/logger/logger.interface';
+import { ConfigInterface } from '../../common/config/config.interface.js';
 import { FilmServiceInterface } from '../film/film-service.interface.js';
 import { CommentServiceInterface } from './comment-service.interface.js';
 import CommentDto from './dto/comment.dto.js';
@@ -25,10 +26,11 @@ type ParamsGetFilm = {
 class CommentController extends Controller {
   constructor(
     @inject(Component.LoggerInterface) logger: LoggerInterface,
+    @inject(Component.ConfigInterface) configService: ConfigInterface,
     @inject(Component.CommentServiceInterface) private readonly commentService: CommentServiceInterface,
     @inject(Component.FilmServiceInterface) private readonly filmService: FilmServiceInterface
   ) {
-    super(logger);
+    super(logger, configService);
 
     this.logger.info('Register routes for FilmController...');
 

@@ -7,6 +7,7 @@ interface CommentServiceInterface {
   findByFilmId(filmId: string, countToFetch?: number): Promise<DocumentType<CommentEntity>[] | null>;
   findOrCreate(filmId: string, dto: CreateCommentDto): Promise<DocumentType<CommentEntity>>;
   getFilmRating(filmId: string): Promise<number>;
+  deleteByFilmId(filmId: string): Promise<number | null>;
 }
 
 export { CommentServiceInterface };

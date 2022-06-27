@@ -1,3 +1,4 @@
+import { unlink } from 'fs/promises';
 import { Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 import { createJWT, fillDTO } from '../../utils/common.js';
@@ -25,10 +26,10 @@ import PrivateRouteMiddleware from '../../middlewares/private-route.middleware.j
 class UserController extends Controller {
   constructor(
     @inject(Component.LoggerInterface) logger: LoggerInterface,
-    @inject(Component.ConfigInterface) private readonly configService: ConfigInterface,
+    @inject(Component.ConfigInterface) configService: ConfigInterface,
     @inject(Component.UserServiceInterface) private readonly userService: UserServiceInterface
   ) {
-    super(logger);
+    super(logger, configService);
 
     this.logger.info('Register routes for FilmController...');
 
@@ -48,7 +49,15 @@ class UserController extends Controller {
       );
     }
 
-    this.created(res, { filepath: req.file?.path });
+    const { body } = req.body;
+    const userId = req.user.userId;
+    const userAvatar = (await this.userService.findById(userId))?.avatar;
+    if (userAvatar) {
+      unlink(`${this.configService.get('UPLOAD_DIRECTORY')}/${userAvatar}`);
+    }
+    const updatedUser = await this.userService.updateById(userId, { ...body, avatar: req.file.filename });
+    this.created(res, fillDTO(LoggedUserDto, updatedUser));
+
   }
 
   public async login(

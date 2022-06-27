@@ -5,6 +5,7 @@ import { fillDTO } from '../../utils/common.js';
 import { Component } from '../../types/component.type.js';
 import { HttpMethod } from '../../types/http-method.enum.js';
 import { LoggerInterface } from '../../common/logger/logger.interface';
+import { ConfigInterface } from '../../common/config/config.interface.js';
 import { FilmServiceInterface } from '../film/film-service.interface.js';
 import { FavoritesServiceInterface } from './favorites-service.interface.js';
 import ValidateObjectIdMiddleware from '../../middlewares/validate-objectid.middleware.js';
@@ -23,10 +24,11 @@ type ParamsFavorites = {
 class FavoritesController extends Controller {
   constructor(
     @inject(Component.LoggerInterface) logger: LoggerInterface,
+    @inject(Component.ConfigInterface) configService: ConfigInterface,
     @inject(Component.FavoritesServiceInterface) private readonly favoritesService: FavoritesServiceInterface,
     @inject(Component.FilmServiceInterface) private readonly filmService: FilmServiceInterface,
   ) {
-    super(logger);
+    super(logger, configService);
 
     this.logger.info('Register routes for FilmController...');
 
@@ -50,7 +52,7 @@ class FavoritesController extends Controller {
   public async fetchFavoriteFilms(
     { user: { userId } }: Request,
     res: Response): Promise<void> {
-    const films = await this.filmService.find(userId, Number.MAX_SAFE_INTEGER, undefined, true);
+    const films = await this.filmService.findFavoriteFilms(userId);
 
     this.ok(res, fillDTO(FilmDto, films));
   }

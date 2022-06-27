@@ -7,7 +7,7 @@ import { ControllerInterface } from '../common/controller/controller.interface.j
 import { ExceptionFilterInterface } from '../common/errors/exception-filter.interface.js';
 import { Component } from '../types/component.type.js';
 import { getURI } from '../utils/db.js';
-import { getNotFoundPage } from '../utils/common.js';
+import { getFullServerPath, getNotFoundPage } from '../utils/common.js';
 import { StatusCodes } from 'http-status-codes';
 import AuthenticateMiddleware from '../middlewares/authenticate.middleware.js';
 
@@ -45,6 +45,7 @@ class Application {
   public registerMiddlewares() {
     this.expressApp.use(express.json());
     this.expressApp.use('/upload', express.static(this.config.get('UPLOAD_DIRECTORY')));
+    this.expressApp.use('/static', express.static(this.config.get('STATIC_DIRECTORY_PATH')));
     this.expressApp.use(this.authenticationMiddleware.execute.bind(this.authenticationMiddleware));
   }
 
@@ -78,7 +79,7 @@ class Application {
     this.registerMiddlewares();
     this.registerRoutes();
     this.registerExceptionFilters();
-    this.expressApp.listen(this.config.get('PORT'), () => this.logger.info(`Server started on http://localhost:${this.config.get('PORT')}`));
+    this.expressApp.listen(this.config.get('PORT'), () => this.logger.info(`Server started on ${getFullServerPath(this.config.get('HOST'), this.config.get('PORT'))}`));
   }
 }
 

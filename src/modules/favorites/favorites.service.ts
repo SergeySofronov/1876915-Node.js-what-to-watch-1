@@ -27,6 +27,11 @@ class FavoritesService implements FavoritesServiceInterface {
 
     return this.favoritesModel.findOneAndDelete({ filmId }).exec();
   }
+
+  public async deleteByFilmId(filmId: string): Promise<number> {
+    const result = await this.favoritesModel.deleteMany({ filmId }).exec();
+    return result.deletedCount;
+  }
 }
 
 export default FavoritesService;

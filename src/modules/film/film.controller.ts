@@ -5,13 +5,17 @@ import { fillDTO } from '../../utils/common.js';
 import { Component } from '../../types/component.type.js';
 import { HttpMethod } from '../../types/http-method.enum.js';
 import { LoggerInterface } from '../../common/logger/logger.interface';
+import { ConfigInterface } from '../../common/config/config.interface.js';
 import { FilmServiceInterface } from './film-service.interface';
+import { CommentServiceInterface } from '../comment/comment-service.interface.js';
+import { FavoritesServiceInterface } from '../favorites/favorites-service.interface.js';
 import { RequestQuery } from '../../types/request-query.type.js';
 import { EntityFilter } from '../../types/entity-filter.type.js';
 import { DEFAULT_FILM_COUNT, SIMILAR_FILM_COUNT } from './film.constant.js';
 import ValidateDtoMiddleware from '../../middlewares/validate-dto.middleware.js';
 import ValidateObjectIdMiddleware from '../../middlewares/validate-objectid.middleware.js';
 import DocumentExistsMiddleware from '../../middlewares/document-exists.middleware.js';
+import DocumentOwnerMiddleware from '../../middlewares/document-owner.middleware.js';
 import PrivateRouteMiddleware from '../../middlewares/private-route.middleware.js';
 import Controller from '../../common/controller/controller.js';
 import CreateFilmDto from './dto/create-film.dto.js';
@@ -27,18 +31,21 @@ type ParamsGetFilm = {
 class FilmController extends Controller {
   constructor(
     @inject(Component.LoggerInterface) logger: LoggerInterface,
-    @inject(Component.FilmServiceInterface) private readonly filmService: FilmServiceInterface
+    @inject(Component.ConfigInterface) configService: ConfigInterface,
+    @inject(Component.FilmServiceInterface) private readonly filmService: FilmServiceInterface,
+    @inject(Component.CommentServiceInterface) private readonly commentService: CommentServiceInterface,
+    @inject(Component.FavoritesServiceInterface) private readonly favoriteService: FavoritesServiceInterface
   ) {
-    super(logger);
+    super(logger, configService);
 
     this.logger.info('Register routes for FilmController...');
 
     this.addRoute({ path: '/films', method: HttpMethod.Get, handler: this.fetchFilms });  // Получить список всех фильмов
     this.addRoute({ path: '/films', method: HttpMethod.Post, handler: this.createFilm, middlewares: [new PrivateRouteMiddleware(), new ValidateDtoMiddleware(CreateFilmDto)] }); // Добавить новый фильм
     this.addRoute({ path: '/films/:filmId', method: HttpMethod.Get, handler: this.fetchFilm, middlewares: [new ValidateObjectIdMiddleware('filmId'), new DocumentExistsMiddleware(this.filmService, 'Film', 'filmId')] }); // Получение детальной информации по фильму
-    this.addRoute({ path: '/films/:filmId', method: HttpMethod.Patch, handler: this.editFilm, middlewares: [new ValidateObjectIdMiddleware('filmId'), new PrivateRouteMiddleware(), new ValidateDtoMiddleware(EditFilmDto), new DocumentExistsMiddleware(this.filmService, 'Film', 'filmId')] }); // Частичное редактирование карточки фильма
-    this.addRoute({ path: '/films/:filmId', method: HttpMethod.Put, handler: this.replaceFilm, middlewares: [new ValidateObjectIdMiddleware('filmId'), new PrivateRouteMiddleware(), new ValidateDtoMiddleware(CreateFilmDto), new DocumentExistsMiddleware(this.filmService, 'Film', 'filmId')] }); // Полное редактирование карточки фильма
-    this.addRoute({ path: '/films/:filmId', method: HttpMethod.Delete, handler: this.deleteFilm, middlewares: [new ValidateObjectIdMiddleware('filmId'), new PrivateRouteMiddleware(), new DocumentExistsMiddleware(this.filmService, 'Film', 'filmId')] }); // Удаление фильма
+    this.addRoute({ path: '/films/:filmId', method: HttpMethod.Patch, handler: this.editFilm, middlewares: [new ValidateObjectIdMiddleware('filmId'), new PrivateRouteMiddleware(), new ValidateDtoMiddleware(EditFilmDto), new DocumentExistsMiddleware(this.filmService, 'Film', 'filmId'), new DocumentOwnerMiddleware(this.filmService, 'Film', 'filmId')] }); // Частичное редактирование карточки фильма
+    this.addRoute({ path: '/films/:filmId', method: HttpMethod.Put, handler: this.replaceFilm, middlewares: [new ValidateObjectIdMiddleware('filmId'), new PrivateRouteMiddleware(), new ValidateDtoMiddleware(CreateFilmDto), new DocumentExistsMiddleware(this.filmService, 'Film', 'filmId'), new DocumentOwnerMiddleware(this.filmService, 'Film', 'filmId')] }); // Полное редактирование карточки фильма
+    this.addRoute({ path: '/films/:filmId', method: HttpMethod.Delete, handler: this.deleteFilm, middlewares: [new ValidateObjectIdMiddleware('filmId'), new PrivateRouteMiddleware(), new DocumentExistsMiddleware(this.filmService, 'Film', 'filmId'), new DocumentOwnerMiddleware(this.filmService, 'Film', 'filmId')] }); // Удаление фильма
     this.addRoute({ path: '/films/:filmId/similar', method: HttpMethod.Get, handler: this.fetchSimilarFilms, middlewares: [new ValidateObjectIdMiddleware('filmId'), new DocumentExistsMiddleware(this.filmService, 'Film', 'filmId')] }); // Получение списка похожих фильмов
     this.addRoute({ path: '/films/genre/:genre', method: HttpMethod.Get, handler: this.fetchFilmsByGenre }); // Получение списка похожих фильмов
     this.addRoute({ path: '/promo', method: HttpMethod.Get, handler: this.fetchPromoFilm }); // Получение промо-фильма
@@ -73,9 +80,11 @@ class FilmController extends Controller {
   }
 
   public async deleteFilm(
-    { params }: Request<core.ParamsDictionary | ParamsGetFilm>,
+    { params: { filmId } }: Request<core.ParamsDictionary | ParamsGetFilm>,
     res: Response): Promise<void> {
-    const film = await this.filmService.deleteById(params.filmId);
+    const film = await this.filmService.deleteById(filmId);
+    await this.commentService.deleteByFilmId(filmId);
+    await this.favoriteService.deleteByFilmId(filmId);
     this.noContent(res, film);
   }
 

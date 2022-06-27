@@ -1,13 +1,14 @@
 import { inject, injectable } from 'inversify';
+import { mongoose } from '@typegoose/typegoose';
 import { DocumentType, ModelType } from '@typegoose/typegoose/lib/types.js';
 import { LoggerInterface } from '../../common/logger/logger.interface.js';
 import { FilmServiceInterface } from './film-service.interface.js';
+import { DEFAULT_FILM_COUNT } from './film.constant.js';
 import { FilmEntity } from './film.entity.js';
 import { Component } from '../../types/component.type.js';
 import CreateFilmDto from './dto/create-film.dto.js';
 import EditFilmDto from './dto/edit-film.dto.js';
-import { DEFAULT_FILM_COUNT } from './film.constant.js';
-import { mongoose } from '@typegoose/typegoose';
+import { SortType } from '../../types/sort-type.enum.js';
 
 @injectable()
 class FilmService implements FilmServiceInterface {
@@ -27,6 +28,10 @@ class FilmService implements FilmServiceInterface {
     return (await this.filmModel.exists({ _id: documentId })) !== null;
   }
 
+  public async isOwner(userId: string, filmId: string): Promise<boolean> {
+    return (await this.filmModel.exists({ _id: filmId, userId })) !== null;
+  }
+
   public async findById(userId: string, filmId: string): Promise<DocumentType<FilmEntity> | null> {
     const films = await this.find(userId, 1, { '_id': new mongoose.Types.ObjectId(filmId) });
     return films ? films[0] : null;
@@ -34,6 +39,10 @@ class FilmService implements FilmServiceInterface {
 
   public async findByGenre(userId: string, genre: string, countToFetch: number): Promise<DocumentType<FilmEntity>[] | null> {
     return this.find(userId, countToFetch, { genre });
+  }
+
+  public async findFavoriteFilms(userId: string): Promise<DocumentType<FilmEntity>[] | null> {
+    return this.find(userId, Number.MAX_SAFE_INTEGER, undefined, true);
   }
 
   public async find(userId = '', countToFetch?: number, searchOptions?: Record<string | number, unknown>, isFavoriteOnly = false): Promise<DocumentType<FilmEntity>[] | null> {
@@ -85,7 +94,7 @@ class FilmService implements FilmServiceInterface {
       },
       { $unset: 'favorites' },
       { $limit: limit },
-      { $sort: { publicationDate: -1 } },
+      { $sort: { publicationDate: SortType.Down } },
       {
         $lookup: {
           from: 'users',

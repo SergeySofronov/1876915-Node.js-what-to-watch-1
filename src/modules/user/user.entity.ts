@@ -23,16 +23,16 @@ class UserEntity extends defaultClasses.TimeStamps implements User {
     this.avatar = data.avatar;
   }
 
-  @prop({ unique: true, required: true })
+  @prop({ required: true, trim: true, unique: true })
   public email!: string;
 
-  @prop({ required: true, default: '' })
+  @prop({ required: true, trim: true, default: '' })
   public name!: string;
 
-  @prop({ required: true, default: '' })
+  @prop({ required: true, trim: true, default: '' })
   public avatar!: string;
 
-  @prop({ required: true, default: '' })
+  @prop({ required: true, trim: true, default: '' })
   public password!: string;
 
   public setPassword(password: string, salt: string) {

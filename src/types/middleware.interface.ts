@@ -8,4 +8,8 @@ interface DocumentExistsInterface {
   exists(documentId: string): Promise<boolean>;
 }
 
-export { MiddlewareInterface, DocumentExistsInterface };
+interface DocumentOwnerInterface {
+  isOwner(documentId: string, userId: string): Promise<boolean>;
+}
+
+export { MiddlewareInterface, DocumentExistsInterface, DocumentOwnerInterface };

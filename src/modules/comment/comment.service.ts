@@ -4,8 +4,9 @@ import { CommentServiceInterface } from './comment-service.interface.js';
 import { LoggerInterface } from '../../common/logger/logger.interface.js';
 import { Component } from '../../types/component.type.js';
 import { CommentEntity } from './comment.entity.js';
-import CreateCommentDto from './dto/create-comment.dto.js';
+import { SortType } from '../../types/sort-type.enum.js';
 import { DEFAULT_COMMENT_COUNT } from './comment.constant.js';
+import CreateCommentDto from './dto/create-comment.dto.js';
 import mongoose from 'mongoose';
 
 @injectable()
@@ -33,7 +34,7 @@ class CommentService implements CommentServiceInterface {
 
   public async findByFilmId(filmId: string, countToFetch?: number): Promise<DocumentType<CommentEntity>[] | null> {
     const limit = countToFetch ?? DEFAULT_COMMENT_COUNT;
-    return this.commentModel.find({ filmId }).limit(limit).sort('-date').populate('userId').exec();
+    return this.commentModel.find({ filmId }).limit(limit).sort({ date: SortType.Down }).populate('userId').exec();
   }
 
   public async getFilmRating(filmId: string): Promise<number> {
@@ -44,6 +45,11 @@ class CommentService implements CommentServiceInterface {
     const rating = films[0].averageRating ?? 0;
 
     return (rating % 1) ? rating.toFixed(1) : rating;
+  }
+
+  public async deleteByFilmId(filmId: string): Promise<number> {
+    const result = await this.commentModel.deleteMany({filmId}).exec();
+    return result.deletedCount;
   }
 }
 
