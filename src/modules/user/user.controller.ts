@@ -20,6 +20,7 @@ import ValidateDtoMiddleware from '../../middlewares/validate-dto.middleware.js'
 import ValidateObjectIdMiddleware from '../../middlewares/validate-objectid.middleware.js';
 import UploadFileMiddleware from '../../middlewares/upload-file.middleware.js';
 import PrivateRouteMiddleware from '../../middlewares/private-route.middleware.js';
+import { existsSync } from 'fs';
 
 
 @injectable()
@@ -53,7 +54,10 @@ class UserController extends Controller {
     const userId = req.user.userId;
     const userAvatar = (await this.userService.findById(userId))?.avatar;
     if (userAvatar) {
-      unlink(`${this.configService.get('UPLOAD_DIRECTORY')}/${userAvatar}`);
+      const avatarPath = `${this.configService.get('UPLOAD_DIRECTORY')}/${userAvatar}`;
+      if (existsSync(avatarPath)) {
+        unlink(`${this.configService.get('UPLOAD_DIRECTORY')}/${userAvatar}`);
+      }
     }
     const updatedUser = await this.userService.updateById(userId, { ...body, avatar: req.file.filename });
     this.created(res, fillDTO(LoggedUserDto, updatedUser));
@@ -106,7 +110,6 @@ class UserController extends Controller {
     }
 
     const newUser = await this.userService.create(body, this.configService.get('SALT'));
-    console.log('Created');
     this.created(res, fillDTO(UserDto, newUser));
   }
 }

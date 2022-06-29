@@ -62,7 +62,7 @@ class FilmController extends Controller {
     { params, query, user }: Request<core.ParamsDictionary | ParamsGetFilm, unknown, unknown, RequestQuery>,
     res: Response
   ): Promise<void> {
-    const limit = Number(query.limit) ?? DEFAULT_FILM_COUNT;
+    const limit = Number(query.limit) || DEFAULT_FILM_COUNT;
     const films = await this.filmService.findByGenre(user?.userId, params.genre, limit);
 
     this.ok(res, fillDTO(FilmDto, films, { filmFilter: EntityFilter.FILM_SHORT }));
@@ -71,7 +71,7 @@ class FilmController extends Controller {
   public async fetchSimilarFilms(
     { params, query, user }: Request<core.ParamsDictionary | ParamsGetFilm, unknown, unknown, RequestQuery>,
     res: Response): Promise<void> {
-    const limit = query.limit ?? SIMILAR_FILM_COUNT;
+    const limit = query.limit || SIMILAR_FILM_COUNT;
     const film = await this.filmService.findById(user?.userId, params.filmId);
     if (film) {
       const films = await this.filmService.findByGenre(user?.userId, film.genre, limit);

@@ -1,3 +1,4 @@
+import cors from 'cors';
 import { inject, injectable } from 'inversify';
 import express, { Express, Request, Response } from 'express';
 import { DatabaseInterface } from '../common/database-client/database.interface.js';
@@ -47,6 +48,7 @@ class Application {
     this.expressApp.use('/upload', express.static(this.config.get('UPLOAD_DIRECTORY')));
     this.expressApp.use('/static', express.static(this.config.get('STATIC_DIRECTORY_PATH')));
     this.expressApp.use(this.authenticationMiddleware.execute.bind(this.authenticationMiddleware));
+    this.expressApp.use(cors());
   }
 
   public registerExceptionFilters() {

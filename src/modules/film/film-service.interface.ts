@@ -1,10 +1,10 @@
 import { DocumentType } from '@typegoose/typegoose/lib/types.js';
 import { FilmEntity } from './film.entity.js';
-import { DocumentExistsInterface } from '../../types/middleware.interface.js';
+import { DocumentExistsInterface, DocumentOwnerInterface } from '../../types/middleware.interface.js';
 import CreateFilmDto from './dto/create-film.dto.js';
 import EditFilmDto from './dto/edit-film.dto.js';
 
-interface FilmServiceInterface extends DocumentExistsInterface {
+interface FilmServiceInterface extends DocumentExistsInterface, DocumentOwnerInterface  {
   create(dto: CreateFilmDto): Promise<DocumentType<FilmEntity>>;
   findById(userId: string, filmId: string): Promise<DocumentType<FilmEntity> | null>;
   findByGenre(userId: string, genre: string, countToFetch: number): Promise<DocumentType<FilmEntity>[] | null>;
