@@ -28,7 +28,7 @@ class FilmService implements FilmServiceInterface {
     return (await this.filmModel.exists({ _id: documentId })) !== null;
   }
 
-  public async isOwner(userId: string, filmId: string): Promise<boolean> {
+  public async isOwner(filmId: string, userId: string): Promise<boolean> {
     return (await this.filmModel.exists({ _id: filmId, userId })) !== null;
   }
 

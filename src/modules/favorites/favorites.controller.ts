@@ -41,11 +41,9 @@ class FavoritesController extends Controller {
     res: Response): Promise<void> {
     const filmId = params.filmId;
     const isFavorite = Boolean(Number(params.isFavorite));
-    const film = await this.filmService.findById(userId, filmId);
     await this.favoritesService.setFavoriteFilm({ filmId, userId }, isFavorite);
-    if (film && film?.isFavorite !== true) {
-      film.isFavorite = true;
-    }
+    const film = await this.filmService.findById(userId, filmId);
+
     this.ok(res, fillDTO(FilmDto, film));
   }
 

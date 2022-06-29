@@ -25,6 +25,7 @@ class FavoritesService implements FavoritesServiceInterface {
       return favorite;
     }
 
+    this.logger.info(`New favorite film deleted: ${filmId}`);
     return this.favoritesModel.findOneAndDelete({ filmId }).exec();
   }
 
