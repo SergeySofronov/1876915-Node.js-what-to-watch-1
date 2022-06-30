@@ -33,9 +33,17 @@ const adaptNewFilmToServer = (film: NewFilm): CreateFilmDto => ({
   backgroundColor: film.backgroundColor
 });
 
+const adaptAvatarToServer = (file: File) => {
+  const formData = new FormData();
+  formData.set('avatar', file);
+
+  return formData;
+};
+
 export {
   adaptNewFilmToServer,
   adaptNewUserToServer,
-  adaptLoginUserToServer
+  adaptLoginUserToServer,
+  adaptAvatarToServer
 };
 
