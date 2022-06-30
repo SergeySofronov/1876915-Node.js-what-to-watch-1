@@ -45,7 +45,7 @@ import { saveToken, dropToken } from '../services/token';
 import { NewUser } from '../types/new-user';
 import { errorHandle } from '../services/error-handler';
 import { adaptCommentsToClient, adaptFilmsToClient, adaptFilmToClient, adaptUserToClient } from '../adapters/adaptersToClient';
-import { adaptLoginUserToServer, adaptNewFilmToServer, adaptNewUserToServer } from '../adapters/adaptersToServer';
+import { adaptAvatarToServer, adaptLoginUserToServer, adaptNewFilmToServer, adaptNewUserToServer } from '../adapters/adaptersToServer';
 import FilmDto from '../dto/film/film.dto';
 import CommentDto from '../dto/comment/comment.dto';
 import LoggedUserDto from '../dto/user/logged-user.dto';
@@ -294,10 +294,9 @@ export const registerUser = createAsyncThunk<void, NewUser, AsyncThunkConfig>(
 
       const { data: { token } } = await api.post<LoggedUserDto>(APIRoute.Login, adaptLoginUserToServer(userData));
       saveToken(token);
-      dispatch(checkAuth());
 
       if (avatar) {
-        await api.post(`/${data.id}${APIRoute.SetAvatar}`, avatar, {
+        await api.post(`/${data.id}${APIRoute.SetAvatar}`, adaptAvatarToServer(avatar), {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
