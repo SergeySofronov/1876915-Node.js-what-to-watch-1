@@ -118,7 +118,7 @@ class FilmService implements FilmServiceInterface {
   }
 
   public async replaceById(filmId: string, dto: CreateFilmDto): Promise<DocumentType<FilmEntity> | null> {
-    return this.filmModel.findOneAndReplace({ id: filmId }, dto, { new: true }).populate('userId').exec();
+    return this.filmModel.findOneAndReplace({ _id: filmId }, dto, { new: true }).populate('userId').exec();
   }
 
   public async incCommentCount(filmId: string, filmRating: number): Promise<DocumentType<FilmEntity> | null> {

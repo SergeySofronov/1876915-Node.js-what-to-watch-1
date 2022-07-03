@@ -9,6 +9,8 @@
   ],
   "main": "main.js",
   "scripts": {
+    "cli": "ts-node src/cli.ts",
+    "cli-start": "npm run build && node ./dist/cli.js",
     "start": "npm run build && node ./dist/main.js",
     "start:dev": "nodemon",
     "build": "npm run clean && npm run compile",
